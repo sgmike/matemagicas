@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="both" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MateMágicas · Riga 7. klase</title>
+<meta name="description" content="Matemáticas bilingües español–letón para el examen de ingreso a 7.º grado de los gimnasios estatales de Riga. Lecciones, ejemplos y ejercicios infinitos con solución paso a paso.">
+<meta name="theme-color" content="#6C5CE7">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="topbar">
+  <button class="brand" data-go="#/">
+    <span class="brand-mark">✨</span>
+    <span class="brand-text">
+      <strong>MateMágicas</strong>
+      <small>Riga · 7. klase</small>
+    </span>
+  </button>
+
+  <div class="topbar-right">
+    <div class="langswitch" role="group" aria-label="Idioma / Valoda">
+      <button data-lang-btn="es" title="Español">ES</button>
+      <button data-lang-btn="both" title="Español + Latviešu">ES+LV</button>
+      <button data-lang-btn="lv" title="Latviski">LV</button>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="Tema / Tēma" aria-label="Tema">🌗</button>
+    <button class="profile-chip" id="profileBtn" title="Perfil / Profils">
+      <span class="avatar" id="profileAvatar">🦊</span>
+      <span class="profile-meta">
+        <span class="profile-name" id="profileName">…</span>
+        <span class="profile-xp" id="profileXp">0 XP</span>
+      </span>
+    </button>
+  </div>
+</header>
+
+<nav class="mainnav" id="mainnav">
+  <a href="#/" data-nav="/"><span>🏠</span><b class="bi"><span class="es">Inicio</span><span class="lv">Sākums</span></b></a>
+  <a href="#/temas" data-nav="/temas"><span>📚</span><b class="bi"><span class="es">Temas</span><span class="lv">Temati</span></b></a>
+  <a href="#/reto" data-nav="/reto"><span>⚡</span><b class="bi"><span class="es">Reto</span><span class="lv">Izaicinājums</span></b></a>
+  <a href="#/examen" data-nav="/examen"><span>📝</span><b class="bi"><span class="es">Simulacro</span><span class="lv">Simulācija</span></b></a>
+  <a href="#/errores" data-nav="/errores"><span>🧾</span><b class="bi"><span class="es">Errores</span><span class="lv">Kļūdas</span></b></a>
+  <a href="#/plan" data-nav="/plan"><span>🗓️</span><b class="bi"><span class="es">Plan</span><span class="lv">Plāns</span></b></a>
+  <a href="#/glosario" data-nav="/glosario"><span>🔤</span><b class="bi"><span class="es">Glosario</span><span class="lv">Vārdnīca</span></b></a>
+  <a href="#/progreso" data-nav="/progreso"><span>📈</span><b class="bi"><span class="es">Progreso</span><span class="lv">Progress</span></b></a>
+</nav>
+
+<main id="main" class="main"></main>
+
+<footer class="foot">
+  <p class="bi">
+    <span class="es">Hecho con cariño para preparar el examen de ingreso a los gimnasios estatales de Riga.</span>
+    <span class="lv">Ar mīlestību veidots, gatavojoties Rīgas valsts ģimnāziju iestājpārbaudījumam.</span>
+  </p>
+  <p class="foot-links">
+    <button data-go="#/ajustes">⚙️ <span class="bi"><span class="es">Ajustes y copia de seguridad</span><span class="lv">Iestatījumi un dublējums</span></span></button>
+  </p>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal" class="modal" hidden></div>
+
+<!-- núcleo -->
+<script src="assets/js/core/core.js"></script>
+<script src="assets/js/core/store.js"></script>
+<script src="assets/js/core/i18n.js"></script>
+<!-- contenido: lecciones -->
+<script src="assets/js/content/lessons-1.js"></script>
+<script src="assets/js/content/lessons-2.js"></script>
+<script src="assets/js/content/lessons-3.js"></script>
+<!-- contenido: generadores de ejercicios -->
+<script src="assets/js/content/gen-numbers.js"></script>
+<script src="assets/js/content/gen-proportion.js"></script>
+<script src="assets/js/content/gen-data-lang.js"></script>
+<script src="assets/js/content/gen-geometry.js"></script>
+<script src="assets/js/content/gen-problems.js"></script>
+<!-- contenido: temario, plan y glosario -->
+<script src="assets/js/content/topics.js"></script>
+<script src="assets/js/content/plan.js"></script>
+<script src="assets/js/content/glossary.js"></script>
+<!-- aplicación -->
+<script src="assets/js/app/engine.js"></script>
+<script src="assets/js/app/views.js"></script>
+<script src="assets/js/app/exam.js"></script>
+<script src="assets/js/app/main.js"></script>
+</body>
+</html>

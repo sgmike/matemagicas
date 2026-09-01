@@ -1,0 +1,19 @@
+{
+  "name": "MateMágicas · Riga 7. klase",
+  "short_name": "MateMágicas",
+  "description": "Matemáticas bilingües español–letón para el examen de ingreso a 7.º de los gimnasios estatales de Riga.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ff",
+  "theme_color": "#6C5CE7",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
