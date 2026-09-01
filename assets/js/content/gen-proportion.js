@@ -195,11 +195,20 @@
     topic: 'pct', level: 3, part: 'B', points: 4, name: T('Donación y reparto', 'Ziedojums un sadale'),
     make(rng) {
       const nm = G.names(rng, 3);
-      const c = [rng.int(15, 30), rng.int(15, 30), rng.int(15, 30)];
-      const totalC = c[0] + c[1] + c[2];
-      const money = rng.pick([24, 30, 36, 48, 60]);
-      const donate = rng.pick([50, 60, 75, 40]);
-      const rest = Math.round(money * (100 - donate)) / 100;
+      const money = rng.pick([24, 30, 36, 40, 48, 60]);
+      const donate = rng.pick([40, 50, 60, 75]);
+      /* el dinero que queda, en céntimos; el número de galletas tiene que
+         dividirlo exacto para que el precio por galleta sea limpio */
+      const restCents = money * (100 - donate);
+      const divs = MM.divisors(restCents).filter(d => d >= 55 && d <= 95);
+      if (!divs.length) return this.make(MM.rng(rng.int(1, 1e6)));
+      const totalC = rng.pick(divs);
+      const a = rng.int(15, totalC - 36);
+      const b = rng.int(15, totalC - a - 18);
+      const cc = totalC - a - b;
+      const c = [a, b, cc];
+      if (new Set(c).size < 3) return this.make(MM.rng(rng.int(1, 1e6)));
+      const rest = restCents / 100;
       const per = rest / totalC;
       const maxI = c.indexOf(Math.max.apply(null, c));
       const best = Math.round(c[maxI] * per * 100) / 100;
@@ -211,10 +220,12 @@
           T('Galletas en total: ' + c.join(' + ') + ' = ' + totalC, 'Cepumi kopā: ' + c.join(' + ') + ' = ' + totalC),
           T('Donan el ' + donate + ' % → les queda el ' + (100 - donate) + ' %: ' + MM.n(money) + ' · ' + MM.n((100 - donate) / 100) + ' = ' + MM.n(rest) + ' €',
             'Ziedo ' + donate + ' % → paliek ' + (100 - donate) + ' %: ' + MM.n(money) + ' · ' + MM.n((100 - donate) / 100) + ' = ' + MM.n(rest) + ' €'),
-          T('Por galleta: ' + MM.n(rest) + ' : ' + totalC + ' = ' + MM.n(per, 4) + ' €',
-            'Par vienu cepumu: ' + MM.n(rest) + ' : ' + totalC + ' = ' + MM.n(per, 4) + ' €'),
-          T(nm[maxI] + ' hizo más galletas (' + c[maxI] + '): ' + c[maxI] + ' · ' + MM.n(per, 4) + ' = <b>' + MM.n(best) + ' €</b>',
-            nm[maxI] + ' izcepa visvairāk (' + c[maxI] + '): ' + c[maxI] + ' · ' + MM.n(per, 4) + ' = <b>' + MM.n(best) + ' €</b>')
+          T('Por galleta: ' + MM.n(rest) + ' : ' + totalC + ' = ' + MM.n(per) + ' €',
+            'Par vienu cepumu: ' + MM.n(rest) + ' : ' + totalC + ' = ' + MM.n(per) + ' €'),
+          T(nm[maxI] + ' hizo más galletas (' + c[maxI] + '): ' + c[maxI] + ' · ' + MM.n(per) + ' = <b>' + MM.n(best) + ' €</b>',
+            nm[maxI] + ' izcepa visvairāk (' + c[maxI] + '): ' + c[maxI] + ' · ' + MM.n(per) + ' = <b>' + MM.n(best) + ' €</b>'),
+          T('Comprobación: ' + c.map(x => MM.n(Math.round(x * per * 100) / 100)).join(' + ') + ' = ' + MM.n(rest) + ' € ✓',
+            'Pārbaude: ' + c.map(x => MM.n(Math.round(x * per * 100) / 100)).join(' + ') + ' = ' + MM.n(rest) + ' € ✓')
         ],
         hint: T('Primero cuánto dinero queda, después cuánto vale una galleta.',
                 'Vispirms, cik naudas paliek; tad, cik vērts ir viens cepums.')

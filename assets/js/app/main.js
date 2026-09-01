@@ -32,6 +32,7 @@
         if (route.arg === 'hacer' && MM.exam.state && !MM.exam.state.finished) return V.examRun();
         if (route.arg === 'resultado' && MM.exam.state && MM.exam.state.result) return V.examResults();
         return V.exam();
+      case '/imprimir': return V.print();
       case '/plan': return V.plan();
       case '/glosario': return V.glossary();
       case '/progreso': return V.progress();
@@ -43,6 +44,9 @@
   /** al entrar en una ruta: preparar sesiones */
   function onEnter(prev) {
     const same = prev && prev.name === route.name && prev.arg === route.arg;
+    if (route.name === '/imprimir' && !same && route.arg && MM.topic(route.arg)) {
+      MM.buildSheet(route.arg, 12, Math.floor(Math.random() * 90000) + 10000);
+    }
     if (route.name === '/practica' && !same) {
       if (!MM.topic(route.arg)) { location.hash = '#/temas'; return; }
       MM.engine.start({ mode: 'topic', topic: route.arg, duo: MM.store.settings.duo });
@@ -251,6 +255,16 @@
         break;
       }
       case 'review-mistakes': location.hash = '#/repaso'; break;
+
+      /* hoja imprimible */
+      case 'sheet-make': {
+        const t = doc.getElementById('sheetTopic').value;
+        const n = Number(doc.getElementById('sheetN').value);
+        MM.buildSheet(t, n, Math.floor(Math.random() * 90000) + 10000);
+        render();
+        break;
+      }
+      case 'sheet-print': global.print(); break;
       case 'review-one':
         MM.engine.start({ mode: 'mistakes', items: [{ gen: el.getAttribute('data-gen'), seed: Number(el.getAttribute('data-seed')) }] });
         location.hash = '#/repaso';

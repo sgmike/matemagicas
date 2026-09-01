@@ -21,7 +21,7 @@
     days:        T('días', 'dienas'),
 
     /* inicio */
-    hi:          T('¡Hola', 'Sveika'),
+    hi:          T('¡Hola', 'Sveiki'),
     heroSub:     T('Un poco cada día y en abril el examen será pan comido.',
                    'Katru dienu pa druskai — un aprīlī pārbaudījums būs viegls.'),
     daysToExam:  T('días para el examen', 'dienas līdz pārbaudījumam'),

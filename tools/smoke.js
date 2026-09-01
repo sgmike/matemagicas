@@ -174,6 +174,17 @@ function ok(msg) { console.log('✓ ' + msg); }
   else ok('examen corregido: ' + res.score + '/' + res.max);
   if (!(await page.$('.scorebig'))) bad('no se ve la pantalla de resultados');
 
+  /* --- hoja para imprimir --- */
+  await page.goto(url + '#/imprimir/nat', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(300);
+  const sheet = await page.evaluate(() => ({
+    items: MM.sheet ? MM.sheet.items.length : 0,
+    qs: document.querySelectorAll('.sheet-q').length
+  }));
+  if (sheet.items !== 12) bad('la hoja imprimible tiene ' + sheet.items + ' ejercicios');
+  else if (sheet.qs !== 24) bad('la hoja no muestra ejercicios + soluciones (' + sheet.qs + ')');
+  else ok('hoja imprimible: 12 ejercicios + soluciones');
+
   /* --- idiomas --- */
   for (const l of ['es', 'lv', 'both']) {
     await page.click('[data-lang-btn="' + l + '"]');

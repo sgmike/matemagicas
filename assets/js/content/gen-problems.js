@@ -179,20 +179,29 @@
   reg('wm.race', {
     topic: 'wm', level: 3, part: 'B', points: 5, name: T('Carrera con salida escalonada', 'Skrējiens ar dažādiem startiem'),
     make(rng) {
-      const v2 = rng.pick([8, 10, 12]), v1 = v2 + rng.pick([2, 3, 4]);
-      const D = rng.pick([6, 8, 10, 12]);
-      const headMin = rng.pick([4, 5, 6, 8]);
+      /* solo combinaciones en las que los tiempos salen en minutos exactos */
+      const combos = [];
+      [6, 8, 10, 12].forEach(D => [8, 10, 12].forEach(v2 => [2, 3, 4].forEach(dv => {
+        const v1 = v2 + dv;
+        if ((60 * D) % v1 === 0 && (60 * D) % v2 === 0) {
+          [3, 4, 5, 6, 8].forEach(hm => {
+            const run = v1 * v2 * hm / (60 * (v1 - v2));
+            if (run < D * 0.92) combos.push({ D: D, v1: v1, v2: v2, hm: hm });
+          });
+        }
+      })));
+      const cb = rng.pick(combos);
+      const D = cb.D, v1 = cb.v1, v2 = cb.v2, headMin = cb.hm;
       const head = F(headMin, 60);
       const gap = head.mul(F(v2, 1));
       const t = gap.div(F(v1 - v2, 1));
       const runFast = t.mul(F(v1, 1));
-      if (runFast.v >= D) return this.make(MM.rng(rng.int(1, 1e6)));
       const toFinish = F(D, 1).sub(runFast);
       const diffMin = 60 * D / v2 - headMin - 60 * D / v1;
       const nm = G.names(rng, 2);
       return {
-        q: T(nm[0] + ' y ' + nm[1] + ' corren <b>' + D + ' km</b>. ' + nm[1] + ' corre a <b>' + v2 + ' km/h</b> y ' + nm[0] + ' a <b>' + v1 + ' km/h</b>, pero ' + nm[1] + ' sale <b>' + headMin + ' minutos antes</b>. ¿A qué distancia de la meta lo alcanza ' + nm[0] + '? ¿Cuántos minutos después llegará ' + nm[1] + ' a la meta?',
-             nm[0] + ' un ' + nm[1] + ' skrien <b>' + D + ' km</b>. ' + nm[1] + ' skrien ar ātrumu <b>' + v2 + ' km/h</b>, bet ' + nm[0] + ' — <b>' + v1 + ' km/h</b>, tomēr ' + nm[1] + ' startē <b>' + headMin + ' minūtes agrāk</b>. Kādā attālumā no finiša ' + nm[0] + ' panāks ' + nm[1] + '? Cik minūtes pēc ' + nm[0] + ' finišēs ' + nm[1] + '?'),
+        q: T(nm[0] + ' y ' + nm[1] + ' corren <b>' + D + ' km</b>. ' + nm[1] + ' corre a <b>' + v2 + ' km/h</b> y ' + nm[0] + ' a <b>' + v1 + ' km/h</b>, pero ' + nm[1] + ' sale <b>' + headMin + ' minutos antes</b>. ¿A qué distancia de la meta alcanza el más rápido al más lento? ¿Cuántos minutos después de la persona más rápida llegará la más lenta a la meta?',
+             nm[0] + ' un ' + nm[1] + ' skrien <b>' + D + ' km</b>. ' + nm[1] + ' skrien ar ātrumu <b>' + v2 + ' km/h</b>, bet ' + nm[0] + ' — <b>' + v1 + ' km/h</b>, tomēr ' + nm[1] + ' startē <b>' + headMin + ' minūtes agrāk</b>. Kādā attālumā no finiša ātrākais skrējējs panāk lēnāko? Cik minūtes pēc ātrākā finišēs lēnākais?'),
         fields: [
           { key: 'd', label: T('Distancia a la meta (km)', 'Attālums līdz finišam (km)'), answerType: 'num', answer: String(Math.round(toFinish.v * 10000) / 10000), unit: 'km', tol: 0.02 },
           { key: 'm', label: T('Diferencia al llegar (min)', 'Starpība finišā (min)'), answerType: 'num', answer: String(Math.round(diffMin * 1000) / 1000), unit: 'min', tol: 0.02 }
@@ -203,12 +212,12 @@
             'Sākuma priekšrocība: ' + headMin + ' min = ' + MM.fr(head) + ' h → ' + v2 + ' · ' + MM.fr(head) + ' = ' + MM.fr(gap, { mixed: true }) + ' km'),
           T('Acercamiento: ' + v1 + ' − ' + v2 + ' = ' + (v1 - v2) + ' km/h → tiempo = ' + MM.fr(t, { mixed: true }) + ' h',
             'Tuvošanās ātrums: ' + v1 + ' − ' + v2 + ' = ' + (v1 - v2) + ' km/h → laiks = ' + MM.fr(t, { mixed: true }) + ' h'),
-          T('En ese tiempo ' + nm[0] + ' recorre ' + v1 + ' · ' + MM.fr(t, { mixed: true }) + ' = ' + MM.fr(runFast, { mixed: true }) + ' km',
-            'Šajā laikā ' + nm[0] + ' veic ' + v1 + ' · ' + MM.fr(t, { mixed: true }) + ' = ' + MM.fr(runFast, { mixed: true }) + ' km'),
+          T('En ese tiempo el más rápido recorre ' + v1 + ' · ' + MM.fr(t, { mixed: true }) + ' = ' + MM.fr(runFast, { mixed: true }) + ' km',
+            'Šajā laikā ātrākais veic ' + v1 + ' · ' + MM.fr(t, { mixed: true }) + ' = ' + MM.fr(runFast, { mixed: true }) + ' km'),
           T('Distancia a la meta: ' + D + ' − ' + MM.fr(runFast, { mixed: true }) + ' = <b>' + MM.fr(toFinish, { mixed: true }) + ' km</b> ≈ ' + MM.n(toFinish.v, 2),
             'Attālums līdz finišam: ' + D + ' − ' + MM.fr(runFast, { mixed: true }) + ' = <b>' + MM.fr(toFinish, { mixed: true }) + ' km</b> ≈ ' + MM.n(toFinish.v, 2)),
-          T(nm[0] + ' tarda ' + D + ' : ' + v1 + ' = ' + MM.n(60 * D / v1) + ' min desde su salida; ' + nm[1] + ' tarda ' + D + ' : ' + v2 + ' = ' + MM.n(60 * D / v2) + ' min desde la suya (' + headMin + ' min antes).',
-            nm[0] + ' laiks: ' + D + ' : ' + v1 + ' = ' + MM.n(60 * D / v1) + ' min no sava starta; ' + nm[1] + ' laiks: ' + D + ' : ' + v2 + ' = ' + MM.n(60 * D / v2) + ' min no sava starta (' + headMin + ' min agrāk).'),
+          T('El más rápido tarda ' + D + ' : ' + v1 + ' h = ' + MM.n(60 * D / v1) + ' min desde su salida; el más lento tarda ' + D + ' : ' + v2 + ' h = ' + MM.n(60 * D / v2) + ' min desde la suya (' + headMin + ' min antes).',
+            'Ātrākā laiks: ' + D + ' : ' + v1 + ' h = ' + MM.n(60 * D / v1) + ' min no sava starta; lēnākā laiks: ' + D + ' : ' + v2 + ' h = ' + MM.n(60 * D / v2) + ' min no sava starta (' + headMin + ' min agrāk).'),
           T('Diferencia: ' + MM.n(60 * D / v2) + ' − ' + headMin + ' − ' + MM.n(60 * D / v1) + ' = <b>' + MM.n(diffMin) + ' min</b>',
             'Starpība: ' + MM.n(60 * D / v2) + ' − ' + headMin + ' − ' + MM.n(60 * D / v1) + ' = <b>' + MM.n(diffMin) + ' min</b>')
         ],
@@ -346,16 +355,18 @@
         return same.every(q => q[0] === p[0]);
       });
       const pick = rng.pick(valid);
+      const ptsEs = n => n + (n === 1 ? ' punto' : ' puntos');
+      const ptsLv = n => n + (n === 1 ? ' punkts' : ' punkti');
       return {
-        q: T('En un torneo de clase juegan 3 equipos: ' + teams.map(t => '“' + t.es + '”').join(', ') + '. Cada equipo juega una vez contra cada otro. Por victoria 3 puntos, por empate 1 punto y por derrota 0. Al final, “' + teams[1].es + '” tiene <b>' + pick[1] + '</b> puntos y “' + teams[2].es + '” tiene <b>' + pick[2] + '</b>. ¿Cuántos puntos tiene “' + teams[0].es + '”?',
-             'Klases turnīrā piedalās 3 komandas: ' + teams.map(t => '“' + t.lv + '”').join(', ') + '. Katra komanda ar katru spēlē vienu reizi. Par uzvaru 3 punkti, par neizšķirtu 1 punkts, par zaudējumu 0. Beigās “' + teams[1].lv + '” ir <b>' + pick[1] + '</b> punkti, bet “' + teams[2].lv + '” — <b>' + pick[2] + '</b>. Cik punktu ir “' + teams[0].lv + '”?'),
+        q: T('En un torneo de clase juegan 3 equipos: ' + teams.map(t => '“' + t.es + '”').join(', ') + '. Cada equipo juega una vez contra cada otro. Por victoria 3 puntos, por empate 1 punto y por derrota 0. Al final, “' + teams[1].es + '” tiene <b>' + ptsEs(pick[1]) + '</b> y “' + teams[2].es + '” tiene <b>' + ptsEs(pick[2]) + '</b>. ¿Cuántos puntos tiene “' + teams[0].es + '”?',
+             'Klases turnīrā piedalās 3 komandas: ' + teams.map(t => '“' + t.lv + '”').join(', ') + '. Katra komanda ar katru spēlē vienu reizi. Par uzvaru 3 punkti, par neizšķirtu 1 punkts, par zaudējumu 0. Beigās “' + teams[1].lv + '” ir <b>' + ptsLv(pick[1]) + '</b>, bet “' + teams[2].lv + '” — <b>' + ptsLv(pick[2]) + '</b>. Cik punktu ir “' + teams[0].lv + '”?'),
         answerType: 'num', answer: String(pick[0]),
         solution: [
           T('Hay 3 partidos en total y cada equipo juega 2.', 'Kopā ir 3 spēles, un katra komanda spēlē 2.'),
           T('En cada partido se reparten 3 puntos (con ganador) o 2 (empate). El total de puntos del torneo es ' + (pick[0] + pick[1] + pick[2]) + '.',
             'Katrā spēlē tiek izdalīti 3 punkti (ar uzvarētāju) vai 2 (neizšķirts). Turnīra kopējais punktu skaits ir ' + (pick[0] + pick[1] + pick[2]) + '.'),
-          T('Descomponiendo los puntos de cada equipo en victorias y empates, la única posibilidad deja a “' + teams[0].es + '” con <b>' + pick[0] + ' puntos</b>.',
-            'Sadalot katras komandas punktus uzvarās un neizšķirtos, vienīgā iespēja atstāj “' + teams[0].lv + '” ar <b>' + pick[0] + ' punktiem</b>.')
+          T('Descomponiendo los puntos de cada equipo en victorias y empates, la única posibilidad deja a “' + teams[0].es + '” con <b>' + ptsEs(pick[0]) + '</b>.',
+            'Sadalot katras komandas punktus uzvarās un neizšķirtos, vienīgā iespēja atstāj “' + teams[0].lv + '” ar <b>' + pick[0] + (pick[0] === 1 ? ' punktu' : ' punktiem') + '</b>.')
         ],
         hint: T('Con 2 partidos: 6 = dos victorias, 4 = victoria + empate, 3 = victoria + derrota, 2 = dos empates, 1 = empate + derrota, 0 = dos derrotas.',
                 'Ar 2 spēlēm: 6 = divas uzvaras, 4 = uzvara + neizšķirts, 3 = uzvara + zaudējums, 2 = divi neizšķirti, 1 = neizšķirts + zaudējums, 0 = divi zaudējumi.')

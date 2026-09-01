@@ -29,19 +29,23 @@
     return list[list.length - 1];
   }
 
-  /** elige n generadores de un tema, sin repetir dos seguidos si se puede */
+  /**
+   * Elige n generadores de un tema. No repite ningún tipo hasta que
+   * han salido todos: así una ronda toca lo más variado posible.
+   */
   function chooseGens(topicId, n, rng) {
     const prof = MM.store.p();
     const level = MM.store.levelFor(topicId);
     const defs = MM.gen.byTopic(topicId);
     if (!defs.length) return [];
     const out = [];
-    let last = null;
+    let used = [];
     for (let i = 0; i < n; i++) {
-      const pool = defs.length > 1 ? defs.filter(d => d.id !== last) : defs;
+      let pool = defs.filter(d => !used.includes(d.id));
+      if (!pool.length) { used = out.length ? [out[out.length - 1]] : []; pool = defs.filter(d => !used.includes(d.id)); }
       const w = pool.map(d => weightFor(d, prof, level));
       const pick = pickWeighted(rng, pool, w);
-      out.push(pick.id); last = pick.id;
+      out.push(pick.id); used.push(pick.id);
     }
     return out;
   }
@@ -50,12 +54,17 @@
   function chooseMixed(n, rng, part) {
     const prof = MM.store.p();
     const defs = MM.gen.all().filter(d => !part || d.part === part);
-    const w = defs.map(d => {
-      const topic = MM.topic(d.topic);
-      return (topic ? topic.w : 5) * weightFor(d, prof, MM.store.levelFor(d.topic)) / 10;
-    });
-    const out = [];
-    for (let i = 0; i < n; i++) out.push(pickWeighted(rng, defs, w).id);
+    const out = [], used = [];
+    for (let i = 0; i < n; i++) {
+      const pool = defs.filter(d => !used.includes(d.id));
+      const list = pool.length ? pool : defs;
+      const w = list.map(d => {
+        const topic = MM.topic(d.topic);
+        return (topic ? topic.w : 5) * weightFor(d, prof, MM.store.levelFor(d.topic)) / 10;
+      });
+      const pick = pickWeighted(rng, list, w);
+      out.push(pick.id); used.push(pick.id);
+    }
     return out;
   }
 

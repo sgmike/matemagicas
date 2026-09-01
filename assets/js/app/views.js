@@ -80,6 +80,9 @@
         quickCard('🧾', UI.errTitle, UI.errSub, '#/errores') +
         quickCard('🗓️', UI.planTitle, UI.planSub, '#/plan') +
         quickCard('🔤', UI.gloTitle, UI.gloSub, '#/glosario') +
+        quickCard('🖨️', T('Hoja para imprimir', 'Lapa izdrukāšanai'),
+          T('Ejercicios en papel con espacio para los pasos y las soluciones al final.',
+            'Uzdevumi uz papīra ar vietu risinājumam un atbildēm beigās.'), '#/imprimir') +
       '</div>';
   };
 
@@ -142,7 +145,8 @@
           stars(MM.store.stars(id)) +
           '<div class="muted" style="font-size:.8rem;margin-top:.2rem">' + st.att + ' ' + pl(st.att, UI.attemptOne, UI.attempts) + ' · ' + pct + ' % ' + bi(UI.correctPct) + '</div>' +
         '</div>' +
-        '<button class="btn primary big" data-act="go" data-href="#/practica/' + id + '">▶︎ ' + bi(UI.startPractice) + '</button>' +
+        '<div class="btn-row"><button class="btn primary big" data-act="go" data-href="#/practica/' + id + '">▶︎ ' + bi(UI.startPractice) + '</button>' +
+        '<button class="btn" data-act="go" data-href="#/imprimir/' + id + '" title="' + MM.txt(T('Hoja para imprimir', 'Lapa izdrukāšanai')) + '">🖨️</button></div>' +
       '</div>' +
 
       '<div class="card lesson">' +
@@ -192,6 +196,7 @@
     }
     return '<div class="field">' + label +
       '<input class="ans ' + cls + '" id="ans-' + f.key + '" data-key="' + f.key + '" type="text" inputmode="decimal" ' +
+      'aria-label="' + MM.txt(f.label || UI.writeAnswer) + '" ' +
       'autocomplete="off" autocorrect="off" spellcheck="false" value="' + esc(item.given[f.key] || '') + '"' +
       (item.checked ? ' disabled' : '') + ' placeholder="?">' + unitHtml(f.unit) + '</div>';
   }
@@ -490,6 +495,60 @@
               'Veidota, gatavojoties Rīgas valsts ģimnāziju vienotajam matemātikas iestājpārbaudījumam (uzņemšana 7. klasē). Visi uzdevumi tiek ģenerēti nejauši, tāpēc tie nekad nebeidzas.'), 'p') +
         '<p class="muted">' + MM.gen.all().length + ' ' + MM.txt(T('tipos de ejercicio', 'uzdevumu veidi')) + ' · ' +
         MM.TOPICS.length + ' ' + MM.txt(T('temas', 'temati')) + '</p>' +
+      '</div>';
+  };
+
+  /* ---------------------------------------------------------
+     HOJA PARA IMPRIMIR
+     El examen real se hace en papel y con bolígrafo: esta hoja
+     sirve para practicar igual, con las soluciones al final.
+     --------------------------------------------------------- */
+  MM.sheet = null;
+
+  MM.buildSheet = function (topicId, n, seed) {
+    const rng = MM.rng('hoja-' + seed);
+    const gens = topicId === 'mix' ? MM.engine.chooseMixed(n, rng) : MM.engine.chooseGens(topicId, n, rng);
+    const items = gens.map(g => MM.gen.make(g, rng.int(1, 999999))).filter(Boolean);
+    MM.sheet = { topic: topicId, n: n, seed: seed, items: items };
+    return MM.sheet;
+  };
+
+  V.print = function () {
+    const s = MM.sheet;
+    const opts = '<option value="mix">' + MM.txt(T('Mezcla de todos los temas', 'Visu tematu sajaukums')) + '</option>' +
+      MM.TOPICS.map(t => '<option value="' + t.id + '"' + (s && s.topic === t.id ? ' selected' : '') + '>' +
+        t.emoji + ' ' + MM.txt(t.name) + '</option>').join('');
+
+    const form = '<div class="card">' +
+      '<h1>🖨️ ' + bi(T('Hoja para imprimir', 'Lapa izdrukāšanai')) + '</h1>' +
+      biB(T('Ejercicios nuevos cada vez, con espacio para escribir todos los pasos a boli, y las soluciones al final. Así se practica igual que en el examen.',
+            'Katru reizi jauni uzdevumi, ar vietu, kur ar pildspalvu pierakstīt visus soļus, un risinājumiem beigās. Tā var trenēties tāpat kā pārbaudījumā.'), 'p') +
+      '<div class="row">' +
+        '<select class="txt" id="sheetTopic">' + opts + '</select>' +
+        '<select class="txt" id="sheetN">' + [8, 12, 16, 20, 30].map(k =>
+          '<option value="' + k + '"' + (s && s.n === k ? ' selected' : '') + '>' + k + ' ' + MM.txt(UI.exercises) + '</option>').join('') + '</select>' +
+        '<button class="btn primary" data-act="sheet-make">🎲 ' + bi(T('Generar hoja', 'Izveidot lapu')) + '</button>' +
+        (s ? '<button class="btn accent" data-act="sheet-print">🖨️ ' + bi(T('Imprimir', 'Drukāt')) + '</button>' : '') +
+      '</div></div>';
+
+    if (!s) return form;
+
+    return form + '<div class="card sheet-paper">' +
+      '<div class="row between"><h2 style="margin:0">' +
+        (s.topic === 'mix' ? MM.txt(T('Mezcla', 'Sajaukums')) : MM.txt(MM.topic(s.topic).name)) +
+        '</h2><span class="muted">' + MM.txt(T('Hoja n.º', 'Lapa Nr.')) + ' ' + s.seed + '</span></div>' +
+      '<p class="muted">' + MM.txt(T('Nombre: ______________________   Fecha: ____________   Tiempo: ______',
+                                     'Vārds: ______________________   Datums: ____________   Laiks: ______')) + '</p>' +
+      s.items.map((ex, i) =>
+        '<div class="sheet-q"><b>' + (i + 1) + '.</b> ' + biB(ex.q, 'div') +
+        '<div class="sheet-space" style="height:' + (ex.part === 'B' ? 110 : 46) + 'px"></div></div>').join('') +
+      '</div>' +
+      '<div class="card sheet-sol">' +
+        '<h2>🔑 ' + bi(T('Soluciones', 'Risinājumi')) + '</h2>' +
+        s.items.map((ex, i) =>
+          '<div class="sheet-q"><b>' + (i + 1) + '.</b> ' +
+          ex.fields.map(f => (f.label ? bi(f.label) + ': ' : '') + MM.answerHtml(f)).join(' · ') +
+          '<ol class="steps">' + ex.solution.map(st => '<li>' + biB(st, 'div') + '</li>').join('') + '</ol></div>').join('') +
       '</div>';
   };
 

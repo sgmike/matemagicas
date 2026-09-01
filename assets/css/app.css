@@ -356,8 +356,18 @@ ul.plain li:last-child{border-bottom:0}
 .checkline input{width:20px;height:20px;margin-top:.2rem;accent-color:var(--violet)}
 kbd{background:var(--bg2);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:.05rem .35rem;font-size:.82em;font-family:var(--font);font-weight:800}
 .print-only{display:none}
+.sheet-q{border-bottom:1px dashed var(--line);padding:.6rem 0}
+.sheet-q:last-child{border-bottom:0}
+.sheet-space{border-bottom:1px solid var(--line);margin:.4rem 0 .2rem}
 @media print{
-  .topbar,.mainnav,.foot,.btn,.keypad{display:none !important}
-  body{background:#fff}
+  .topbar,.mainnav,.foot,.btn,.keypad,.langswitch,.icon-btn,.profile-chip,select,.toast{display:none !important}
+  body{background:#fff;color:#000}
+  .card{box-shadow:none;border:0;padding:0;margin:0 0 .6rem}
+  .main{padding:0;max-width:100%}
+  .sheet-sol{page-break-before:always;break-before:page}
+  .sheet-q{page-break-inside:avoid;break-inside:avoid}
+  .note,.example{border-color:#999}
+  .sheet-space{border-bottom:1px solid #999}
+  .sheet-q{border-bottom-color:#ddd}
   .print-only{display:block}
 }
