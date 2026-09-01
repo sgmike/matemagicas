@@ -54,8 +54,10 @@ la fracción simplificada.
 El sitio es HTML/CSS/JS puro: **no hay que compilar nada**.
 
 1. En GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. Al hacer push a `main`, el workflow `.github/workflows/pages.yml` publica la web.
-3. La URL será `https://<usuario>.github.io/<repositorio>/`.
+   (Es el único paso manual; hay que hacerlo una vez.)
+2. Con cada push a la rama principal, el workflow `.github/workflows/pages.yml`
+   pasa las pruebas y publica la web.
+3. La URL será **`https://sgmike.github.io/matemagicas/`**.
 
 También funciona abriendo `index.html` directamente desde el disco (sin servidor), y se puede
 **instalar como app** en el móvil o la tablet ("Añadir a la pantalla de inicio"), con funcionamiento

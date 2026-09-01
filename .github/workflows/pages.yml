@@ -2,7 +2,8 @@ name: Publicar en GitHub Pages
 
 on:
   push:
-    branches: [main]
+    # publica desde la rama principal, se llame como se llame
+    branches: [main, master, 'claude/**']
   workflow_dispatch:
 
 permissions:
