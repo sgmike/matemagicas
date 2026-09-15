@@ -476,3 +476,23 @@ button,.btn,.choice,.keypad button{touch-action:manipulation}
   .gnode-btn{width:64px;height:64px;font-size:1.7rem}
   h1{font-size:1.45rem}
 }
+
+/* ---------- mascota, misiones, logros ---------- */
+.mascot{display:flex;gap:.6rem;align-items:flex-start;margin:.2rem 0 .8rem}
+.mascot-face{font-size:2.4rem;line-height:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.2));animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.bubble{position:relative;background:rgba(255,255,255,.75);color:#3a2000;border-radius:14px;padding:.55rem .8rem;font-weight:700;line-height:1.35;flex:1}
+.bubble::before{content:"";position:absolute;left:-8px;top:14px;border:8px solid transparent;border-right-color:rgba(255,255,255,.75);border-left:0}
+.bubble small{display:block;font-weight:600;opacity:.8;margin-top:.25rem}
+.quests li{display:grid;grid-template-columns:auto 1fr auto;gap:.7rem;align-items:center;padding:.55rem 0}
+.quests .q-icon{font-size:1.5rem}
+.quests .q-body{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+.quests .q-right{text-align:right;font-weight:800;white-space:nowrap;font-size:.9rem}
+.quests li.done .q-body b{text-decoration:line-through;color:var(--ink-mute)}
+.quests li.done .bar>i{background:var(--green)}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:.5rem;margin-top:.5rem}
+.bdg{border:1px solid var(--line);border-radius:14px;padding:.55rem .4rem;text-align:center;background:var(--bg2);opacity:.55;display:flex;flex-direction:column;gap:.15rem}
+.bdg.on{opacity:1;border-color:var(--amber);background:var(--amber-l)}
+.bdg-icon{font-size:1.7rem;line-height:1.2}
+.bdg b{font-size:.8rem;line-height:1.15}
+.bdg small{font-size:.68rem;color:var(--ink-mute);line-height:1.2}

@@ -14,6 +14,9 @@ estatales de Riga** (entrada a 7.º curso), pensada para trabajar madre/padre e 
   tres niveles de ejercicios y un jefe final), vidas, estrellas, puntos, objetivo diario y semanal.
   Los ejemplos se ven paso a paso con un reproductor (▶ ⏸ ⏭). En los niveles altos el enunciado
   aparece en letón con traducción a un toque.
+- **Para que quiera volver sola**: mascota (Pī el búho 🦉) con mensajes según el momento, **3 misiones
+  diarias** con bonus, **19 logros** con premio en puntos, **modo relámpago** de 60 segundos con récord,
+  y cada lección termina con una comprobación rápida de 2 preguntas.
 - **👨‍👧 Panel de padres** con PIN: puntos por semana comparados con las semanas anteriores, días
   activos, aciertos, niveles superados y una tabla para anotar el premio de cada semana.
 

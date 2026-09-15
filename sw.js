@@ -1,6 +1,6 @@
 /* Service worker sencillo: red primero, caché de respaldo.
    Así la web funciona sin conexión pero siempre se actualiza si hay red. */
-const CACHE = 'matemagicas-v2';
+const CACHE = 'matemagicas-v3';
 const ASSETS = [
   './',
   'index.html',
@@ -24,6 +24,7 @@ const ASSETS = [
   'assets/js/app/views.js',
   'assets/js/app/exam.js',
   'assets/js/app/game.js',
+  'assets/js/app/game-extra.js',
   'assets/js/app/main.js'
 ];
 

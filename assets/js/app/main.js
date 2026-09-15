@@ -21,7 +21,8 @@
 
   function viewHtml() {
     switch (route.name) {
-      case '/': return V.home();
+      case '/': return V.gameHome();
+      case '/estudio': return V.home();
       case '/temas': return V.topics();
       case '/tema': return V.topic(route.arg);
       case '/practica': return V.practice();
@@ -36,6 +37,7 @@
       case '/juego':
         if (route.arg === 'mundo') return V.gameWorld(route.sub);
         if (route.arg === 'nivel') return V.gameLevel();
+        if (route.arg === 'relampago') return V.gameFlash();
         return V.gameHome();
       case '/padres': return V.parents();
       case '/plan': return V.plan();
@@ -95,20 +97,20 @@
   function render() {
     main.innerHTML = viewHtml();
     doc.querySelectorAll('.mainnav a').forEach(a => {
-      const on = a.getAttribute('data-nav') === route.name;
+      const on = a.getAttribute('data-nav') === route.name || (a.getAttribute('data-nav') === '/' && route.name === '/juego');
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
-    const tabbed = ['/juego', '/', '/reto', '/temas'];
+    const tabbed = ['/juego', '/', '/estudio', '/reto', '/temas', '/tema', '/practica'];
     doc.querySelectorAll('.tabbar [data-tab]').forEach(a => {
       const t = a.getAttribute('data-tab');
-      const on = t === route.name || (t === 'more' && !tabbed.includes(route.name)) || (t === '/temas' && (route.name === '/tema' || route.name === '/practica'));
+      const on = t === route.name || (t === '/' && route.name === '/juego') || (t === 'more' && !tabbed.includes(route.name)) || (t === '/temas' && (route.name === '/tema' || route.name === '/practica'));
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     updateProfileChip();
     if (MM.player) MM.player.init(main);
     if (route.name === '/examen' && route.arg === 'hacer') startExamTimer(); else stopExamTimer();
     const first = main.querySelector('input.ans:not([disabled])');
-    if (first && (route.name === '/practica' || route.name === '/reto' || route.name === '/repaso' || route.name === '/juego')) {
+    if (first && (route.name === '/practica' || route.name === '/reto' || route.name === '/repaso' || route.name === '/juego') && !MM.isTouch()) {
       first.focus();
       lastInput = first;
     }
@@ -118,6 +120,7 @@
   function navigate() {
     const prev = route;
     route = parseHash();
+    if (MM.game && MM.game.flash && !(route.name === '/juego' && route.arg === 'relampago')) MM.game.flashStop();
     onEnter(prev);
     render();
     global.scrollTo({ top: 0, behavior: 'instant' in global ? 'instant' : 'auto' });
@@ -431,7 +434,11 @@
   doc.addEventListener('keydown', ev => {
     if (ev.key !== 'Enter') return;
     if (route.name === '/padres' && ev.target.id === 'pinInput') { ev.preventDefault(); doc.querySelector('[data-act="pin-ok"]').click(); return; }
-    if (route.name === '/juego' && route.arg === 'nivel' && MM.game.run && MM.game.run.def.kind !== 'lesson' && MM.game.run.def.kind !== 'examples') {
+    if (route.name === '/juego' && route.arg === 'relampago' && MM.game.flash && !MM.game.flash.ended) {
+      if (ev.target.tagName === 'BUTTON') return;
+      ev.preventDefault(); MM.game.act('g-flash-check', { getAttribute: () => null }); return;
+    }
+    if (route.name === '/juego' && route.arg === 'nivel' && MM.game.run && (MM.game.run.quiz || (MM.game.run.def.kind !== 'lesson' && MM.game.run.def.kind !== 'examples'))) {
       if (ev.target.tagName === 'BUTTON') return;
       ev.preventDefault();
       const it = MM.engine.item();

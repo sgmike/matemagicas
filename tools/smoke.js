@@ -186,6 +186,19 @@ function ok(msg) { console.log('✓ ' + msg); }
   else ok('hoja imprimible: 12 ejercicios + soluciones');
 
   /* --- modo juego --- */
+  async function answerCurrent(wrong) {
+    const info = await page.evaluate(() => {
+      const it = MM.engine.item();
+      return it ? it.ex.fields.map(f => ({ key: f.key, type: f.answerType || 'num', ans: String(f.answer), input: f.canonicalInput })) : null;
+    });
+    if (!info) return false;
+    for (const f of info) {
+      if (f.type === 'num' || f.type === 'factor') await page.fill('input.ans[data-key="' + f.key + '"]', wrong ? '424242' : (f.input || f.ans));
+      else if (wrong) await page.click('.choice[data-key="' + f.key + '"]:not([data-val="' + f.ans + '"])');
+      else await page.click('.choice[data-key="' + f.key + '"][data-val="' + f.ans + '"]');
+    }
+    return true;
+  }
   await page.goto(url + '#/juego', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(250);
   if (!(await page.$('.world'))) bad('el mapa de mundos no se ve');
@@ -204,8 +217,15 @@ function ok(msg) { console.log('✓ ' + msg); }
   }
   await page.click('[data-act="g-finish-read"]');
   await page.waitForTimeout(200);
+  if (!(await page.evaluate(() => MM.game.run && MM.game.run.quiz))) bad('la lección no pasa a la comprobación rápida');
+  for (let i = 0; i < 2; i++) {
+    await answerCurrent(false);
+    await page.click('[data-act="g-check"]'); await page.waitForTimeout(120);
+    await page.click('[data-act="g-next"]'); await page.waitForTimeout(150);
+  }
   let pts = await page.evaluate(() => MM.store.pointsTotal());
-  if (pts < 20) bad('la lección no dio puntos (' + pts + ')'); else ok('juego: lección completada, ' + pts + ' pts');
+  if (!(await page.evaluate(() => MM.game.run.finished))) bad('la lección con comprobación no termina');
+  if (pts < 20) bad('la lección no dio puntos (' + pts + ')'); else ok('juego: lección + comprobación, ' + pts + ' pts');
   // ejemplos (nivel 2): reproductor de pasos
   await page.click('[data-act="g-play"][data-n="2"]');
   await page.waitForTimeout(1400);
@@ -243,6 +263,26 @@ function ok(msg) { console.log('✓ ' + msg); }
   if (g.stars !== 2) bad('con un fallo debería dar 2 estrellas, dio ' + g.stars);
   if (!g.unlocked2) bad('el mundo 2 no se desbloqueó al pasar el Nivel 1');
   ok('nivel 1 superado con ' + g.stars + ' estrellas, mundo 2 desbloqueado, ' + g.run.pts + ' pts');
+  // misiones y logros
+  const extra = await page.evaluate(() => ({ quests: MM.game.quests().length, badges: Object.keys(MM.store.p().badges).length,
+    home: document.body.innerHTML.length }));
+  await page.goto(url + '#/', { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(250);
+  const homeBits = await page.evaluate(() => ({ mascot: !!document.querySelector('.mascot'), quests: document.querySelectorAll('.quests li').length, badges: document.querySelectorAll('.bdg').length }));
+  if (extra.quests !== 3 || homeBits.quests !== 3) bad('misiones diarias: ' + extra.quests + '/' + homeBits.quests);
+  if (extra.badges < 1) bad('no se concedió ningún logro tras superar niveles');
+  if (!homeBits.mascot || homeBits.badges < 10) bad('portada del juego sin mascota o logros');
+  ok('portada: mascota, ' + homeBits.quests + ' misiones, ' + extra.badges + ' logro(s) ganados');
+  // modo relámpago
+  await page.goto(url + '#/juego/relampago', { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(200);
+  await page.click('[data-act="g-flash-start"]'); await page.waitForTimeout(300);
+  for (let i = 0; i < 6; i++) {
+    await answerCurrent(i === 2);
+    await page.click('[data-act="g-flash-check"]'); await page.waitForTimeout(120);
+  }
+  await page.evaluate(() => { MM.game.flash.started -= 61000; });
+  await page.waitForTimeout(600);
+  const fl = await page.evaluate(() => ({ ended: MM.game.flash && MM.game.flash.ended, score: MM.game.flash && MM.game.flash.score, best: MM.store.p().flash.best, awarded: MM.game.flash && MM.game.flash.awarded }));
+  if (!fl.ended || fl.score !== 5 || fl.best !== 5 || fl.awarded !== 50) bad('relámpago: ' + JSON.stringify(fl)); else ok('relámpago: 5 aciertos, récord guardado, +' + fl.awarded);
   // panel de padres
   await page.goto(url + '#/padres', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(200);

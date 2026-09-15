@@ -35,7 +35,10 @@
       read: {},            // idTema -> true (lección leída)
       points: {},          // 'YYYY-MM-DD' -> {t:total, juego, practica, reto, simulacro}
       game: { levels: {}, history: [] },   // 'tema:n' -> {done, stars, best, first}
-      rewards: {}          // 'YYYY-MM-DD' (lunes) -> {given, note}
+      rewards: {},         // 'YYYY-MM-DD' (lunes) -> {given, note}
+      quests: {},          // 'YYYY-MM-DD' -> ['pts', 'levels', ...] misiones cobradas
+      badges: {},          // idLogro -> fecha
+      flash: { best: 0, games: 0 }   // modo relámpago
     };
   }
 
@@ -156,6 +159,7 @@
       }
       if (o.correct && o.fromMistake) {
         p.mistakes = p.mistakes.filter(m => !(m.gen === o.gen && m.seed === o.seed));
+        day.fixed = (day.fixed || 0) + 1;
       }
       this.touchStreak(p);
       this.save();

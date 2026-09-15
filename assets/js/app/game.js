@@ -250,7 +250,9 @@
 
   V.gameHome = function () {
     const p = MM.store.p();
+    G.claimQuests(); G.checkBadges();
     const w = weekInfo();
+    const rewardNote = (p.rewards[w.mon] || {}).note;
     const next = G.nextLevel();
     const total = MM.store.pointsTotal();
     const nextT = next ? MM.topic(next.topic) : null;
@@ -260,13 +262,14 @@
     return '<section class="hero card ghero">' +
         '<div class="hero-deco">🎮</div>' +
         '<h1>¡Hola, ' + esc(p.name) + '! ' + p.avatar + '</h1>' +
+        '<div class="mascot"><span class="mascot-face">' + G.MASCOT + '</span><div class="bubble">' + G.mascotMsg() + '</div></div>' +
         '<div class="hero-stats">' +
           '<span class="pill">🔥 <b>' + (p.streak.days || 0) + '</b> días seguidos</span>' +
           '<span class="pill">💎 <b>' + total + '</b> puntos en total</span>' +
           '<span class="pill">☀️ hoy <b>' + w.today + '</b> / ' + w.dailyGoal + '</span>' +
         '</div>' +
         '<div class="goalbox">' +
-          '<div class="row between"><b>🎁 Objetivo de la semana</b><span>' + w.pts + ' / ' + w.goal + ' puntos</span></div>' +
+          '<div class="row between"><b>🎁 ' + (rewardNote ? 'Premio de la semana: ' + esc(rewardNote) : 'Objetivo de la semana') + '</b><span>' + w.pts + ' / ' + w.goal + ' puntos</span></div>' +
           '<div class="bar big"><i style="width:' + pct + '%"></i></div>' +
           (w.pts >= w.goal ? '<div class="goal-ok">🏆 ¡Objetivo conseguido! Todo lo que sumes ahora es extra.</div>'
                            : '<div class="muted-light">Te faltan <b>' + (w.goal - w.pts) + '</b> puntos. Cada ejercicio bien vale 10 o más.</div>') +
@@ -274,8 +277,10 @@
         (next ? '<button class="btn accent big" data-act="g-play" data-topic="' + next.topic + '" data-n="' + next.n + '">▶ Continuar: ' +
                 nextT.emoji + ' ' + es(nextT.name) + ' · ' + nextL.icon + ' ' + nextL.title + '</button>'
               : '<div class="goal-ok">🏁 ¡Has completado todos los mundos! Repite los jefes para más puntos.</div>') +
+        '<div class="btn-row" style="margin-top:.5rem"><button class="btn" data-act="go" data-href="#/juego/relampago">⚡ Relámpago (60 s) · récord ' + (p.flash.best || 0) + '</button>' +
+        '<button class="btn" data-act="go" data-href="#/reto">🎲 Reto del día</button></div>' +
       '</section>' +
-
+      G.questsHtml() +
       '<h2 style="margin-top:1rem">🗺️ Mundos</h2>' +
       '<div class="worlds">' + MM.TOPICS.map((t, i) => {
         const unlocked = G.worldUnlocked(i);
@@ -289,7 +294,7 @@
           '<span class="bar"><i style="width:' + Math.round(done / LEVELS.length * 100) + '%"></i></span></span>' +
           '<span class="world-meta">' + done + '/' + LEVELS.length + '<br>⭐' + stars + '</span>' +
           '</button>';
-      }).join('') + '</div>';
+      }).join('') + '</div>' + G.badgesHtml();
   };
 
   V.gameWorld = function (topic) {
@@ -326,7 +331,7 @@
       '<a class="btn sm ghost" href="#/juego/mundo/' + run.topic + '">✕</a>' +
       '<span class="muted">' + t.emoji + ' ' + es(t.name) + ' · ' + run.def.icon + ' ' + run.def.title + '</span>' +
       '<span class="badge green">+' + run.pts + '</span></div>';
-    if (run.def.kind === 'lesson') return head + lessonPageHtml(run);
+    if (run.def.kind === 'lesson' && !run.quiz) return head + lessonPageHtml(run);
     if (run.def.kind === 'examples') return head + examplesHtml(run);
     return head + practiceHtml(run);
   };
@@ -371,7 +376,8 @@
           const sel = item.given[f.key] === String(c.v);
           let k = '';
           if (item.checked) { if (String(c.v) === String(f.answer)) k = 'ok'; else if (sel) k = 'bad'; }
-          const txt = typeof c.t === 'string' ? c.t : (G.run.showAlt !== G.run.def.lv ? lv(c.t) : es(c.t));
+          const altLv = G.run && G.run.def && G.run.def.lv !== undefined ? (G.run.showAlt !== G.run.def.lv) : false;
+          const txt = typeof c.t === 'string' ? c.t : (altLv ? lv(c.t) : es(c.t));
           return '<button class="choice ' + k + '" data-act="choice" data-key="' + f.key + '" data-val="' + esc(c.v) + '" aria-pressed="' + (sel ? 'true' : 'false') + '"' +
             (item.checked ? ' disabled' : '') + '><span class="k">' + (type === 'cmp' ? '' : letters[ci]) + '</span><span>' + txt + '</span></button>';
         }).join('') + '</div></div></div>';
@@ -381,6 +387,11 @@
       'autocomplete="off" autocorrect="off" spellcheck="false" value="' + esc(item.given[f.key] || '') + '"' + (item.checked ? ' disabled' : '') + ' placeholder="?">' +
       (f.unit ? '<span class="unit">' + es(f.unit) + '</span>' : '') + '</div>';
   }
+
+  G.fieldHtml = gameField;
+
+  const CHEER_OK = ['🎉 ¡Correcto!', '⭐ ¡Muy bien!', '🚀 ¡Eso es!', '💪 ¡Genial!', '🧠 ¡Perfecto!', '✨ ¡Brillante!'];
+  const CHEER_BAD = ['💔 Casi. Mira cómo se hace paso a paso 👇', '🤔 Esta no. Fíjate en el vídeo y lo pillas 👇', '💡 No pasa nada: así se hace 👇', '👀 Mira el truco aquí abajo 👇'];
 
   function practiceHtml(run) {
     const s = MM.engine.session;
@@ -397,14 +408,14 @@
 
     let feedback = '';
     if (done) {
-      if (item.state === 'revealed' && !item.checked) feedback = '<div class="feedback neutral">👀 Solución mostrada (cuesta una vida, no da puntos). ¡El siguiente lo haces tú!</div>';
-      else if (okAll) feedback = '<div class="feedback ok">🎉 ¡Correcto! +' + item.gained + ' puntos</div>';
-      else feedback = '<div class="feedback bad">💔 Casi. Mira cómo se hace paso a paso 👇</div>';
+      if (item.state === 'revealed' && !item.checked) feedback = '<div class="feedback neutral">👀 Solución mostrada' + (run.quiz ? '' : ' (cuesta una vida, no da puntos)') + '. ¡El siguiente lo haces tú!</div>';
+      else if (okAll) feedback = '<div class="feedback ok">' + CHEER_OK[(s.idx + run.pts) % CHEER_OK.length] + ' +' + item.gained + ' puntos</div>';
+      else feedback = '<div class="feedback bad">' + CHEER_BAD[(s.idx + item.seed) % CHEER_BAD.length] + '</div>';
     }
     const sol = done ? playerHtml('Solución paso a paso', ex.solution.map(es), { auto: !okAll, speed: 2600 }) +
       '<div class="note key" style="margin-top:.5rem">Respuesta correcta: ' + ex.fields.map(f => (f.label ? es(f.label) + ': ' : '') + MM.answerHtml(f)).join(' · ') + '</div>' : '';
 
-    return '<div class="row between" style="margin:.4rem 0">' + heartsHtml(run.hearts) + '<span class="badge">' + (s.idx + 1) + ' / ' + s.items.length + '</span></div>' +
+    return '<div class="row between" style="margin:.4rem 0">' + (run.quiz ? '<span class="badge amber">📖 Comprobación rápida: ¿te has enterado?</span>' : heartsHtml(run.hearts)) + '<span class="badge">' + (s.idx + 1) + ' / ' + s.items.length + '</span></div>' +
       '<div class="dots" style="margin-bottom:.7rem">' + dots + '</div>' +
       '<div class="card gcard qcard">' +
         '<div class="muted" style="font-size:.8rem;padding-right:4rem">' + es(ex.typeName) + ' · vale <b>' + ptsIf + '</b> pts</div>' +
@@ -419,12 +430,13 @@
           (done ? '<button class="btn primary big" data-act="g-next">' + (s.idx + 1 < s.items.length ? 'Siguiente →' : '🏁 Terminar') + '</button>'
                 : '<button class="btn primary big" data-act="g-check">✓ Comprobar</button>' +
                   '<button class="btn" data-act="hint">💡 Pista</button>' +
-                  '<button class="btn ghost" data-act="g-reveal" title="Cuesta una vida">👀 Ver solución</button>') +
+                  '<button class="btn ghost" data-act="g-reveal" title="' + (run.quiz ? '' : 'Cuesta una vida') + '">👀 Ver solución</button>') +
         '</div>' +
       '</div>';
   }
 
   function ptsFor(ex, run) {
+    if (run.quiz) return run.replay ? 2 : 5;
     const base = run.def.kind === 'boss' ? 20 : 10 + 5 * ((ex.level || 1) - 1);
     return run.replay ? Math.ceil(base / 2) : base;
   }
@@ -435,7 +447,7 @@
     const w = weekInfo();
     return '<div class="card center gdone">' +
       '<div style="font-size:3.2rem;line-height:1">' + (run.stars === 3 ? '🏆' : (run.stars === 2 ? '🎉' : '👏')) + '</div>' +
-      '<h1>¡Nivel superado!</h1>' +
+      '<h1>' + ['¡Nivel superado!', '¡Lo has clavado!', '¡Qué máquina!', '¡Así se hace!'][run.pts % 4] + '</h1>' +
       '<div>' + starsHtml(run.stars || 3) + '</div>' +
       '<div class="scorebig">+' + run.pts + '</div><p class="muted">puntos</p>' +
       (run.bonusNote ? '<p>' + run.bonusNote + '</p>' : '') +
@@ -480,12 +492,24 @@
       }
       case 'g-finish-read': {
         if (!run) return true;
+        if (run.def.kind === 'lesson' && !run.quiz) {
+          /* dos preguntas fáciles: si solo pasa las páginas, no cuenta */
+          const rng = MM.rng(Date.now() % 1e9);
+          const defs = MM.gen.byTopic(run.topic).filter(d => d.level <= 1);
+          const pool = defs.length >= 2 ? defs : MM.gen.byTopic(run.topic);
+          const picks = rng.sample(pool, 2);
+          MM.engine.start({ mode: 'game', topic: run.topic, items: picks.map(d => ({ gen: d.id, seed: rng.int(1, 999999) })), noPoints: true });
+          run.quiz = true; run.hearts = 99;
+          MM.render(); global.scrollTo(0, 0);
+          return true;
+        }
         const pts = run.replay ? 0 : run.def.pts;
         run.pts = pts; award(pts, 'juego');
         run.stars = 3;
         markDone(run.topic, run.n, 3, pts);
         run.finished = true;
         MM.confetti(); MM.beep('up');
+        G.claimQuests(); G.checkBadges();
         MM.render();
         return true;
       }
@@ -534,6 +558,16 @@
 
   function finishPractice(run) {
     const s = MM.engine.session;
+    if (run.quiz) {
+      const pts = run.replay ? 0 : run.def.pts;
+      run.pts += pts; award(pts, 'juego');
+      run.stars = 3; run.bonusNote = pts ? '📖 Lección leída: +' + pts : '';
+      markDone(run.topic, run.n, 3, run.pts);
+      run.finished = true;
+      MM.confetti(); MM.beep('up');
+      G.claimQuests(); G.checkBadges();
+      return;
+    }
     const perfect = s.wrong === 0 && s.revealed === 0;
     let bonus = 0, note = [];
     if (perfect) { bonus += 25; note.push('✨ Sin fallos: +25'); }
@@ -544,6 +578,7 @@
     markDone(run.topic, run.n, run.stars, run.pts);
     run.finished = true;
     MM.confetti(); MM.beep('up');
+    G.claimQuests(); G.checkBadges();
   }
 
   /* ---------------------------------------------------------
@@ -606,6 +641,9 @@
         '<div class="card"><h3>📊 Últimas 8 semanas</h3>' + svg + '</div>' +
       '</div>' +
 
+      '<div class="card"><h3>🎁 Premio de esta semana</h3>' +
+        '<p class="muted">Escribe aquí el premio prometido: ella lo verá en su portada junto a los puntos que le faltan.</p>' +
+        '<input class="txt" style="width:min(360px,100%)" data-act="reward-note" data-week="' + thisMon + '" value="' + esc((p.rewards[thisMon] || {}).note || '') + '" placeholder="p. ej. ir al cine 🎬"></div>' +
       '<div class="card"><h3>🎁 Premios por semana</h3>' +
         '<p class="muted">Marca cuándo diste el premio y anota cuál fue. Así las dos veis el historial.</p>' +
         '<table class="t"><thead><tr><th>Semana</th><th>Puntos</th><th>Objetivo</th><th>Días</th><th>Niveles</th><th>Premio dado</th><th>Nota</th></tr></thead><tbody>' +
