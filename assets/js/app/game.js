@@ -285,7 +285,7 @@
           (unlocked ? 'data-act="g-world" data-topic="' + t.id + '"' : 'disabled') + '>' +
           '<span class="world-no">' + (i + 1) + '</span>' +
           '<span class="world-emoji">' + (unlocked ? t.emoji : '🔒') + '</span>' +
-          '<span class="world-body"><b>' + es(t.name) + '</b><small>' + (unlocked ? es(t.sub) : 'Se abre al pasar el Nivel 1 del mundo anterior') + '</small>' +
+          '<span class="world-body"><b>' + es(t.name) + (t.big && unlocked ? ' <span class="badge sky big-only" title="mejor en pantalla grande">💻</span>' : '') + '</b><small>' + (unlocked ? es(t.sub) : 'Se abre al pasar el Nivel 1 del mundo anterior') + '</small>' +
           '<span class="bar"><i style="width:' + Math.round(done / LEVELS.length * 100) + '%"></i></span></span>' +
           '<span class="world-meta">' + done + '/' + LEVELS.length + '<br>⭐' + stars + '</span>' +
           '</button>';
@@ -377,7 +377,7 @@
         }).join('') + '</div></div></div>';
     }
     return '<div class="field">' + label +
-      '<input class="ans ' + cls + '" id="ans-' + f.key + '" data-key="' + f.key + '" type="text" inputmode="decimal" aria-label="respuesta" ' +
+      '<input class="ans ' + cls + '" id="ans-' + f.key + '" data-key="' + f.key + '" type="text" inputmode="' + (MM.isTouch() ? 'none' : 'decimal') + '" aria-label="respuesta" ' +
       'autocomplete="off" autocorrect="off" spellcheck="false" value="' + esc(item.given[f.key] || '') + '"' + (item.checked ? ' disabled' : '') + ' placeholder="?">' +
       (f.unit ? '<span class="unit">' + es(f.unit) + '</span>' : '') + '</div>';
   }
@@ -412,7 +412,7 @@
         (showEs ? '<div class="qtext">' + es(ex.q) + '</div>' : '') +
         '<button class="btn sm ghost" data-act="g-alt">' + (run.showAlt ? '↩ ocultar' : (lvFirst ? '🇪🇸 ¿Qué dice en español?' : '🇱🇻 ¿Cómo se pregunta en letón?')) + '</button>' +
         '<div class="answers" style="margin-top:.7rem">' + ex.fields.map(f => gameField(f, item)).join('') + '</div>' +
-        (done ? '' : V._keypadHtml()) +
+        (done ? '' : V._keypadHtml('g-check')) +
         (item.hintShown && !done ? '<div class="note tip" style="margin-top:.6rem">💡 ' + es(ex.hint || { es: 'Lee el enunciado otra vez, despacio.' }) + '</div>' : '') +
         feedback + sol +
         '<div class="btn-row" style="margin-top:.9rem">' +

@@ -385,6 +385,16 @@
     cm: T('cm', 'cm')
   };
 
+  /** pantalla táctil (móvil/tablet): se usa el teclado propio de la web */
+  MM.isTouch = function () {
+    try { return global.matchMedia && global.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; }
+  };
+  /** aviso que solo se ve en pantallas pequeñas */
+  MM.deskHint = function (txt) {
+    return '<div class="desk-hint">💻 ' + (txt || MM.bi(T('Esto va mejor en un ordenador o una tablet: aquí cabe, pero se ve pequeño.',
+      'Šis labāk darbojas datorā vai planšetē: te viss ietilpst, bet redzams mazāks.'))) + '</div>';
+  };
+
   /* nombres letones para los enunciados (los mismos en ambos idiomas) */
   MM.NAMES = ['Anna', 'Marta', 'Elza', 'Laura', 'Sofija', 'Emīls', 'Roberts', 'Kārlis', 'Jānis', 'Toms',
               'Ilze', 'Guna', 'Dace', 'Zane', 'Rūdolfs', 'Mārcis', 'Juris', 'Alise', 'Katrīna', 'Artūrs'];

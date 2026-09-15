@@ -103,6 +103,8 @@
     const last = p.exams && p.exams.length ? p.exams[p.exams.length - 1] : null;
     return '<h1>📝 ' + bi(UI.examTitle) + '</h1>' +
       biB(UI.examIntro, 'p') +
+      MM.deskHint(bi(T('Son 50 preguntas y 2,5 horas: el simulacro se hace mucho mejor en un ordenador o una tablet, con papel al lado.',
+                       '50 jautājumi un 2,5 stundas: simulāciju daudz ērtāk veikt datorā vai planšetē, ar papīru blakus.'))) +
       '<div class="card">' +
         '<div class="note key">' + biB(T('Reglas del examen real: bolígrafo azul o negro, regla y goma. <b>Sin calculadora</b>. El lápiz solo para dibujos. En la Parte B hay que escribir todos los pasos en papel.',
           'Īstā pārbaudījuma noteikumi: zila vai melna pildspalva, lineāls un dzēšgumija. <b>Bez kalkulatora</b>. Zīmulis tikai zīmējumiem. B daļā uz papīra jāraksta visi soļi.'), 'div') + '</div>' +
@@ -138,7 +140,7 @@
         '</div></div></div>';
     }
     return '<div class="field">' + label +
-      '<input class="ans" type="text" inputmode="decimal" autocomplete="off" data-act="exam-input" data-ekey="' + key + '" value="' + esc(val) + '">' +
+      '<input class="ans" type="text" inputmode="text" autocomplete="off" data-act="exam-input" data-ekey="' + key + '" value="' + esc(val) + '">' +
       (f.unit ? '<span class="unit">' + (typeof f.unit === 'string' ? f.unit : bi(f.unit)) + '</span>' : '') + '</div>';
   }
 

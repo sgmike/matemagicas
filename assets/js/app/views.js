@@ -29,7 +29,7 @@
     const m = MM.store.mastery(t.id);
     return '<button class="topic-card" data-act="go" data-href="#/tema/' + t.id + '">' +
       '<div class="topic-head"><span class="topic-emoji">' + t.emoji + '</span>' +
-      '<span><span class="topic-title">' + biB(t.name, 'span') + '</span></span></div>' +
+      '<span><span class="topic-title">' + biB(t.name, 'span') + '</span>' + (t.big ? '<span class="badge sky big-only">💻</span>' : '') + '</span></div>' +
       '<div class="row between"><span>' + stars(MM.store.stars(t.id)) + '</span>' +
       '<span class="muted" style="font-size:.8rem">' + (st.att ? st.att + ' ' + MM.txt(st.att === 1 ? UI.attemptOne : UI.attempts) : '—') + '</span></div>' +
       bar(m) + '</button>';
@@ -140,6 +140,8 @@
         '<a class="btn sm ghost" href="#/temas">← ' + bi(UI.back) + '</a>' +
       '</div>' +
       biB(t.sub, 'p') +
+      (t.big ? MM.deskHint(bi(T('Este tema tiene dibujos y problemas largos: en el teléfono se puede, pero se lee mejor en un ordenador o una tablet.',
+                                 'Šajā tematā ir zīmējumi un gari uzdevumi: telefonā var, bet datorā vai planšetē lasās labāk.'))) : '') +
 
       '<div class="card row between">' +
         '<div><div class="muted" style="font-size:.8rem">' + bi(UI.mastery) + '</div>' +
@@ -196,17 +198,23 @@
         }).join('') + '</div></div></div>';
     }
     return '<div class="field">' + label +
-      '<input class="ans ' + cls + '" id="ans-' + f.key + '" data-key="' + f.key + '" type="text" inputmode="decimal" ' +
+      '<input class="ans ' + cls + '" id="ans-' + f.key + '" data-key="' + f.key + '" type="text" inputmode="' + (MM.isTouch() ? 'none' : 'decimal') + '" ' +
       'aria-label="' + MM.txt(f.label || UI.writeAnswer) + '" ' +
       'autocomplete="off" autocorrect="off" spellcheck="false" value="' + esc(item.given[f.key] || '') + '"' +
       (item.checked ? ' disabled' : '') + ' placeholder="?">' + unitHtml(f.unit) + '</div>';
   }
 
-  function keypadHtml() {
-    return '<div class="keypad" aria-label="teclas">' +
-      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ',', '/', '−', '␣'].map(k =>
-        '<button data-act="key" data-k="' + k + '">' + k + '</button>').join('') +
-      '<button data-act="key" data-k="⌫">⌫</button></div>';
+  function keypadHtml(checkAct) {
+    const touch = MM.isTouch();
+    const keys = touch
+      ? ['7', '8', '9', '⌫', '4', '5', '6', '/', '1', '2', '3', '−', ',', '0', '␣', '✓']
+      : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ',', '/', '−', '␣', '⌫'];
+    return '<div class="keypad' + (touch ? ' touch' : '') + '" aria-label="teclas">' +
+      keys.map(k => k === '✓'
+        ? '<button class="ok" data-act="' + (checkAct || 'check') + '">✓</button>'
+        : '<button data-act="key" data-k="' + k + '"' + (k === '⌫' ? ' class="del"' : '') + ' title="' + (k === '␣' ? MM.txt(T('espacio (para números mixtos)', 'atstarpe (jauktiem skaitļiem)')) : '') + '">' + k + '</button>').join('') +
+      (touch ? '<button class="kb" data-act="native-kb" title="teclado del sistema">⌨️</button>' : '') +
+      '</div>';
   }
 
   function solutionHtml(item, open) {
@@ -524,6 +532,7 @@
 
     const form = '<div class="card">' +
       '<h1>🖨️ ' + bi(T('Hoja para imprimir', 'Lapa izdrukāšanai')) + '</h1>' +
+      MM.deskHint(bi(T('Para imprimir conviene abrir esto desde un ordenador conectado a la impresora.', 'Drukāšanai labāk atvērt no datora, kas pieslēgts printerim.'))) +
       biB(T('Ejercicios nuevos cada vez, con espacio para escribir todos los pasos a boli, y las soluciones al final. Así se practica igual que en el examen.',
             'Katru reizi jauni uzdevumi, ar vietu, kur ar pildspalvu pierakstīt visus soļus, un risinājumiem beigās. Tā var trenēties tāpat kā pārbaudījumā.'), 'p') +
       '<div class="row">' +

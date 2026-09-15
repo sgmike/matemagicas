@@ -98,11 +98,20 @@
       const on = a.getAttribute('data-nav') === route.name;
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
+    const tabbed = ['/juego', '/', '/reto', '/temas'];
+    doc.querySelectorAll('.tabbar [data-tab]').forEach(a => {
+      const t = a.getAttribute('data-tab');
+      const on = t === route.name || (t === 'more' && !tabbed.includes(route.name)) || (t === '/temas' && (route.name === '/tema' || route.name === '/practica'));
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
     updateProfileChip();
     if (MM.player) MM.player.init(main);
     if (route.name === '/examen' && route.arg === 'hacer') startExamTimer(); else stopExamTimer();
     const first = main.querySelector('input.ans:not([disabled])');
-    if (first && (route.name === '/practica' || route.name === '/reto' || route.name === '/repaso' || route.name === '/juego')) first.focus();
+    if (first && (route.name === '/practica' || route.name === '/reto' || route.name === '/repaso' || route.name === '/juego')) {
+      first.focus();
+      lastInput = first;
+    }
   }
   MM.render = render;
 
@@ -223,6 +232,7 @@
       return;
     }
     if (ev.target.closest('#profileBtn')) { location.hash = '#/ajustes'; return; }
+    if (ev.target.id === 'modal') { MM.closeModal(); return; }
 
     const el = ev.target.closest('[data-act]');
     if (!el) return;
@@ -238,6 +248,25 @@
       }
       case 'pin-lock': MM.game.parentOk = false; render(); break;
       case 'go': location.hash = el.getAttribute('data-href'); break;
+      case 'more': {
+        const items = [
+          ['📝', UI.examTitle, '#/examen'], ['🧾', UI.errTitle, '#/errores'], ['🗓️', UI.planTitle, '#/plan'],
+          ['🔤', UI.gloTitle, '#/glosario'], ['📈', UI.progTitle, '#/progreso'], ['🖨️', T('Hoja para imprimir', 'Lapa izdrukāšanai'), '#/imprimir'],
+          ['👨‍👧', T('Panel de padres', 'Vecāku panelis'), '#/padres'], ['⚙️', UI.setTitle, '#/ajustes']
+        ];
+        MM.modal('<div class="more-list">' + items.map(it =>
+          '<button class="more-item" data-act="go-close" data-href="' + it[2] + '"><span>' + it[0] + '</span>' + MM.bi(it[1]) + '</button>').join('') +
+          '</div><div class="btn-row" style="justify-content:flex-end;margin-top:.6rem"><button class="btn ghost" data-act="modal-cancel">' + MM.txt(UI.close) + '</button></div>');
+        break;
+      }
+      case 'go-close': MM.closeModal(); location.hash = el.getAttribute('data-href'); break;
+      case 'native-kb': {
+        const input = lastInput && doc.contains(lastInput) ? lastInput : main.querySelector('input.ans:not([disabled])');
+        if (!input) break;
+        input.setAttribute('inputmode', input.getAttribute('inputmode') === 'none' ? 'text' : 'none');
+        input.blur(); input.focus();
+        break;
+      }
 
       /* práctica */
       case 'check': doCheck(); break;
