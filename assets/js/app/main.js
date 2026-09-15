@@ -33,6 +33,11 @@
         if (route.arg === 'resultado' && MM.exam.state && MM.exam.state.result) return V.examResults();
         return V.exam();
       case '/imprimir': return V.print();
+      case '/juego':
+        if (route.arg === 'mundo') return V.gameWorld(route.sub);
+        if (route.arg === 'nivel') return V.gameLevel();
+        return V.gameHome();
+      case '/padres': return V.parents();
       case '/plan': return V.plan();
       case '/glosario': return V.glossary();
       case '/progreso': return V.progress();
@@ -46,6 +51,14 @@
     const same = prev && prev.name === route.name && prev.arg === route.arg;
     if (route.name === '/imprimir' && !same && route.arg && MM.topic(route.arg)) {
       MM.buildSheet(route.arg, 12, Math.floor(Math.random() * 90000) + 10000);
+    }
+    if (route.name === '/juego' && route.arg === 'nivel') {
+      const parts = (location.hash.split('/'));      // #/juego/nivel/tema/n
+      const topic = parts[3], n = Number(parts[4]);
+      const r = MM.game.run;
+      if (!r || r.topic !== topic || r.n !== n) {
+        if (!MM.game.start(topic, n)) { location.hash = '#/juego'; return; }
+      }
     }
     if (route.name === '/practica' && !same) {
       if (!MM.topic(route.arg)) { location.hash = '#/temas'; return; }
@@ -86,9 +99,10 @@
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
     updateProfileChip();
+    if (MM.player) MM.player.init(main);
     if (route.name === '/examen' && route.arg === 'hacer') startExamTimer(); else stopExamTimer();
     const first = main.querySelector('input.ans:not([disabled])');
-    if (first && (route.name === '/practica' || route.name === '/reto' || route.name === '/repaso')) first.focus();
+    if (first && (route.name === '/practica' || route.name === '/reto' || route.name === '/repaso' || route.name === '/juego')) first.focus();
   }
   MM.render = render;
 
@@ -213,8 +227,16 @@
     const el = ev.target.closest('[data-act]');
     if (!el) return;
     const act = el.getAttribute('data-act');
+    if (act.startsWith('g-') && MM.game.act(act, el)) return;
 
     switch (act) {
+      case 'pin-ok': {
+        const v = (doc.getElementById('pinInput') || {}).value || '';
+        if (v === String(MM.store.settings.parentPin || '1234')) { MM.game.parentOk = true; render(); }
+        else MM.toast('PIN incorrecto');
+        break;
+      }
+      case 'pin-lock': MM.game.parentOk = false; render(); break;
       case 'go': location.hash = el.getAttribute('data-href'); break;
 
       /* práctica */
@@ -346,6 +368,11 @@
     } else if (act === 'set-check') {
       MM.store.set(el.getAttribute('data-key'), el.checked);
       MM.toast('✅');
+    } else if (act === 'reward-given' || act === 'reward-note') {
+      const p = MM.store.p(), w = el.getAttribute('data-week');
+      const r = p.rewards[w] || (p.rewards[w] = { given: false, note: '' });
+      if (act === 'reward-given') r.given = el.checked; else r.note = el.value.slice(0, 60);
+      MM.store.save(); MM.toast('✅');
     } else if (act === 'import') {
       const file = el.files && el.files[0];
       if (!file) return;
@@ -374,6 +401,15 @@
   /* teclado: Enter comprueba y pasa al siguiente */
   doc.addEventListener('keydown', ev => {
     if (ev.key !== 'Enter') return;
+    if (route.name === '/padres' && ev.target.id === 'pinInput') { ev.preventDefault(); doc.querySelector('[data-act="pin-ok"]').click(); return; }
+    if (route.name === '/juego' && route.arg === 'nivel' && MM.game.run && MM.game.run.def.kind !== 'lesson' && MM.game.run.def.kind !== 'examples') {
+      if (ev.target.tagName === 'BUTTON') return;
+      ev.preventDefault();
+      const it = MM.engine.item();
+      const fake = { getAttribute: () => null };
+      if (it && (it.checked || it.state === 'revealed')) MM.game.act('g-next', fake); else MM.game.act('g-check', fake);
+      return;
+    }
     if (route.name !== '/practica' && route.name !== '/reto' && route.name !== '/repaso') return;
     if (MM.engine.done()) return;
     ev.preventDefault();

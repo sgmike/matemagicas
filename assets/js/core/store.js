@@ -14,7 +14,10 @@
     examDate: '2027-04-24',   // sábado de finales de abril (fecha habitual del examen)
     sessionLen: 10,
     duo: false,
-    sound: true
+    sound: true,
+    parentPin: '1234',        // PIN del panel de padres
+    weeklyGoal: 300,          // puntos por semana para el premio
+    dailyGoal: 60             // puntos al día
   };
 
   function blankProfile(id, name, avatar) {
@@ -29,9 +32,23 @@
       exams: [],           // {when, part, score, max, byTopic, minutes}
       daily: {},           // 'YYYY-MM-DD' -> {a, c}
       plan: {},            // semana -> true
-      read: {}             // idTema -> true (lección leída)
+      read: {},            // idTema -> true (lección leída)
+      points: {},          // 'YYYY-MM-DD' -> {t:total, juego, practica, reto, simulacro}
+      game: { levels: {}, history: [] },   // 'tema:n' -> {done, stars, best, first}
+      rewards: {}          // 'YYYY-MM-DD' (lunes) -> {given, note}
     };
   }
+
+  /** lunes de la semana a la que pertenece una fecha 'YYYY-MM-DD' */
+  MM.weekStart = function (day) {
+    const d = new Date((day || MM.today()) + 'T12:00:00');
+    const wd = (d.getDay() + 6) % 7;            // lunes = 0
+    d.setDate(d.getDate() - wd);
+    return MM.today(d);
+  };
+  MM.addDays = function (day, n) {
+    const d = new Date(day + 'T12:00:00'); d.setDate(d.getDate() + n); return MM.today(d);
+  };
 
   function blank() {
     return {
@@ -174,6 +191,39 @@
       if (t.ema >= 0.85 && t.att >= 18) return 3;
       if (t.ema >= 0.62) return 2;
       return 1;
+    },
+
+    /* ---------- puntos (para el juego y el panel de padres) ---------- */
+    addPoints(n, source, p) {
+      p = p || this.p();
+      if (!n) return;
+      const day = p.points[MM.today()] || (p.points[MM.today()] = { t: 0 });
+      day.t += n;
+      day[source || 'otro'] = (day[source || 'otro'] || 0) + n;
+      this.save();
+    },
+    pointsBetween(from, to, p) {          // ambos inclusive
+      p = p || this.p();
+      let t = 0;
+      Object.keys(p.points).forEach(d => { if (d >= from && d <= to) t += p.points[d].t || 0; });
+      return t;
+    },
+    pointsWeek(monday, p) { return this.pointsBetween(monday, MM.addDays(monday, 6), p); },
+    pointsTotal(p) { p = p || this.p(); return Object.values(p.points).reduce((a, d) => a + (d.t || 0), 0); },
+    /** resumen de una semana para el panel de padres */
+    weekSummary(monday, p) {
+      p = p || this.p();
+      const end = MM.addDays(monday, 6);
+      let pts = 0, days = 0, a = 0, c = 0; const by = {};
+      for (let i = 0; i < 7; i++) {
+        const d = MM.addDays(monday, i);
+        const pd = p.points[d]; const dd = p.daily[d];
+        if (pd && pd.t) { pts += pd.t; days++; Object.keys(pd).forEach(k => { if (k !== 't') by[k] = (by[k] || 0) + pd[k]; }); }
+        if (dd) { a += dd.a; c += dd.c; }
+      }
+      const levels = (p.game.history || []).filter(h => h.d >= monday && h.d <= end).length;
+      return { monday: monday, end: end, pts: pts, days: days, answered: a, correct: c, levels: levels, by: by,
+               reward: p.rewards[monday] || null };
     },
 
     /* ---------- exportar / importar ---------- */

@@ -89,6 +89,7 @@
       const p = MM.store.p();
       p.exams.push({ when: MM.today(), score: s.result.score, max: max, minutes: minutes, byTopic: byTopic });
       MM.store.save();
+      MM.store.addPoints(Math.round(s.result.score * 2), 'simulacro');
       return s.result;
     }
   };

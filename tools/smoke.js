@@ -185,6 +185,75 @@ function ok(msg) { console.log('✓ ' + msg); }
   else if (sheet.qs !== 24) bad('la hoja no muestra ejercicios + soluciones (' + sheet.qs + ')');
   else ok('hoja imprimible: 12 ejercicios + soluciones');
 
+  /* --- modo juego --- */
+  await page.goto(url + '#/juego', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(250);
+  if (!(await page.$('.world'))) bad('el mapa de mundos no se ve');
+  const locked = await page.evaluate(() => document.querySelectorAll('.world.locked').length);
+  if (locked !== 14) bad('deberían estar bloqueados 14 mundos, hay ' + locked);
+  // lección (nivel 1)
+  await page.click('.world:not(.locked)');
+  await page.waitForTimeout(200);
+  if ((await page.evaluate(() => document.querySelectorAll('.gnode').length)) !== 6) bad('el mundo no tiene 6 niveles');
+  await page.click('.gnode.open .gnode-btn', { force: true });
+  await page.waitForTimeout(250);
+  for (let i = 0; i < 12; i++) {
+    const nextBtn = await page.$('[data-act="g-page"][data-d="1"]');
+    if (!nextBtn) break;
+    await nextBtn.click(); await page.waitForTimeout(80);
+  }
+  await page.click('[data-act="g-finish-read"]');
+  await page.waitForTimeout(200);
+  let pts = await page.evaluate(() => MM.store.pointsTotal());
+  if (pts < 20) bad('la lección no dio puntos (' + pts + ')'); else ok('juego: lección completada, ' + pts + ' pts');
+  // ejemplos (nivel 2): reproductor de pasos
+  await page.click('[data-act="g-play"][data-n="2"]');
+  await page.waitForTimeout(1400);
+  const shown = await page.evaluate(() => document.querySelectorAll('.psteps li.shown').length);
+  if (shown < 1) bad('el reproductor de pasos no avanza solo'); else ok('reproductor de pasos: ' + shown + ' paso(s) visibles');
+  for (let i = 0; i < 12; i++) {
+    const nextBtn = await page.$('[data-act="g-page"][data-d="1"]');
+    if (!nextBtn) break;
+    await nextBtn.click(); await page.waitForTimeout(60);
+  }
+  await page.click('[data-act="g-finish-read"]');
+  await page.waitForTimeout(200);
+  // nivel 1 de práctica: 5 ejercicios, uno mal (pierde una vida)
+  await page.click('[data-act="g-play"][data-n="3"]');
+  await page.waitForTimeout(300);
+  for (let i = 0; i < 5; i++) {
+    const info = await page.evaluate(() => {
+      const it = MM.engine.item();
+      return it.ex.fields.map(f => ({ key: f.key, type: f.answerType || 'num', ans: String(f.answer), input: f.canonicalInput }));
+    });
+    for (const f of info) {
+      if (f.type === 'num' || f.type === 'factor') await page.fill('input.ans[data-key="' + f.key + '"]', i === 1 ? '424242' : (f.input || f.ans));
+      else if (i === 1) await page.click('.choice[data-key="' + f.key + '"]:not([data-val="' + f.ans + '"])');
+      else await page.click('.choice[data-key="' + f.key + '"][data-val="' + f.ans + '"]');
+    }
+    await page.click('[data-act="g-check"]');
+    await page.waitForTimeout(150);
+    await page.click('[data-act="g-next"]');
+    await page.waitForTimeout(150);
+  }
+  const g = await page.evaluate(() => ({ run: MM.game.run, done: !!MM.store.p().game.levels['nat:3'], stars: (MM.store.p().game.levels['nat:3'] || {}).stars,
+    unlocked2: MM.game.worldUnlocked(1), lockedNow: document.querySelectorAll('.world.locked').length }));
+  if (!g.run.finished) bad('el nivel de práctica no terminó');
+  if (!g.done) bad('el nivel no quedó marcado como superado');
+  if (g.stars !== 2) bad('con un fallo debería dar 2 estrellas, dio ' + g.stars);
+  if (!g.unlocked2) bad('el mundo 2 no se desbloqueó al pasar el Nivel 1');
+  ok('nivel 1 superado con ' + g.stars + ' estrellas, mundo 2 desbloqueado, ' + g.run.pts + ' pts');
+  // panel de padres
+  await page.goto(url + '#/padres', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(200);
+  await page.fill('#pinInput', '1234');
+  await page.click('[data-act="pin-ok"]');
+  await page.waitForTimeout(200);
+  const panel = await page.evaluate(() => ({ chart: !!document.querySelector('svg.chart'), rows: document.querySelectorAll('[data-act="reward-given"]').length,
+    week: MM.store.weekSummary(MM.weekStart()) }));
+  if (!panel.chart || panel.rows !== 8) bad('el panel de padres no se renderiza bien');
+  else ok('panel de padres: semana con ' + panel.week.pts + ' pts, ' + panel.week.levels + ' niveles');
+
   /* --- idiomas --- */
   for (const l of ['es', 'lv', 'both']) {
     await page.click('[data-lang-btn="' + l + '"]');
@@ -197,7 +266,8 @@ function ok(msg) { console.log('✓ ' + msg); }
   if (SHOTS) {
     const dir = path.join(ROOT, 'tools', 'shots');
     fs.mkdirSync(dir, { recursive: true });
-    for (const [name, r] of [['inicio', '#/'], ['tema', '#/tema/frac'], ['practica', '#/practica/dec'], ['plan', '#/plan'], ['glosario', '#/glosario'], ['progreso', '#/progreso']]) {
+    for (const [name, r] of [['inicio', '#/'], ['tema', '#/tema/frac'], ['practica', '#/practica/dec'], ['plan', '#/plan'], ['glosario', '#/glosario'], ['progreso', '#/progreso'],
+                             ['juego', '#/juego'], ['mundo', '#/juego/mundo/nat'], ['padres', '#/padres']]) {
       await page.goto(url + r, { waitUntil: 'networkidle' });
       await page.waitForTimeout(400);
       await page.screenshot({ path: path.join(dir, name + '.png'), fullPage: r !== '#/practica/dec' });

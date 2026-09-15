@@ -95,6 +95,7 @@
         idx: 0,
         started: Date.now(),
         correct: 0, wrong: 0, revealed: 0, xp: 0,
+        noPoints: !!opts.noPoints,
         duo: duoPlayers && duoPlayers.length > 1 ? { players: duoPlayers, turn: 0, score: {} } : null
       };
       if (this.session.duo) this.session.duo.players.forEach(p => { this.session.duo.score[p] = 0; });
@@ -131,6 +132,7 @@
       const gained = it.state === 'revealed' ? 2 : (ok ? (8 + 4 * (it.ex.level || 1)) : 2);
       s.xp += gained;
       const newLevel = MM.store.addXp(gained, prof);
+      if (!s.noPoints) MM.store.addPoints(ok && it.state !== 'revealed' ? gained : 0, s.mode === 'daily' ? 'reto' : 'practica', prof);
 
       MM.store.record({
         topic: it.ex.topic, gen: it.gen, seed: it.seed,

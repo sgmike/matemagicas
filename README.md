@@ -10,6 +10,12 @@ estatales de Riga** (entrada a 7.º curso), pensada para trabajar madre/padre e 
 - **Guarda el progreso** en el navegador: racha, nivel, estrellas por tema y cuaderno de errores.
 - **Simulacro de examen** cronometrado con la estructura real (Parte A + Parte B).
 - **Plan de estudio de 6 meses** y **glosario letón ↔ español**.
+- **🎮 Modo juego** (en español, estilo Duolingo): 15 mundos × 6 niveles (aprende, mira cómo se hace,
+  tres niveles de ejercicios y un jefe final), vidas, estrellas, puntos, objetivo diario y semanal.
+  Los ejemplos se ven paso a paso con un reproductor (▶ ⏸ ⏭). En los niveles altos el enunciado
+  aparece en letón con traducción a un toque.
+- **👨‍👧 Panel de padres** con PIN: puntos por semana comparados con las semanas anteriores, días
+  activos, aciertos, niveles superados y una tabla para anotar el premio de cada semana.
 
 ---
 
@@ -20,6 +26,12 @@ estatales de Riga** (entrada a 7.º curso), pensada para trabajar madre/padre e 
    y cambiar de uno a otro en **Ajustes**.
 3. Rutina recomendada: **lección → practicar → reto del día**. Y una vez al mes, un **simulacro**.
 4. El botón **ES / ES+LV / LV** (arriba a la derecha) cambia el idioma al instante.
+
+### El juego, en dos líneas
+
+Ella entra en **🎮 Juego** y pulsa **▶ Continuar**: la web le lleva siempre al siguiente nivel.
+Tú entras en **👨‍👧 Padres** (PIN de fábrica `1234`, cámbialo dentro), ves los puntos de la semana
+y marcas el premio.
 
 ### Consejos de uso
 

@@ -59,7 +59,8 @@
           '<span class="pill">✅ ' + bi(UI.todayGoal) + ': <b>' + today.a + '</b> ' + pl(today.a, UI.exerciseOne, UI.exercises) + '</span>' +
         '</div>' +
         '<div class="btn-row">' +
-          '<button class="btn accent big" data-act="go" data-href="#/reto">⚡ ' + bi(UI.dailyTitle) + '</button>' +
+          '<button class="btn accent big" data-act="go" data-href="#/juego">🎮 ' + bi(T('Jugar', 'Spēlēt')) + '</button>' +
+          '<button class="btn big" data-act="go" data-href="#/reto">⚡ ' + bi(UI.dailyTitle) + '</button>' +
           '<button class="btn big" data-act="go" data-href="#/temas">📚 ' + bi(UI.topicsTitle) + '</button>' +
         '</div>' +
       '</section>' +
@@ -257,6 +258,8 @@
       '<div class="btn-row" style="margin-top:.9rem">' + buttons + '</div>' +
     '</div>';
   }
+
+  V._fieldHtml = fieldHtml; V._keypadHtml = keypadHtml; V._stars = stars; V._bar = bar;
 
   V.practice = function () {
     const s = MM.engine.session;
