@@ -210,7 +210,7 @@ function ok(msg) { console.log('✓ ' + msg); }
   if ((await page.evaluate(() => document.querySelectorAll('.gnode').length)) !== 6) bad('el mundo no tiene 6 niveles');
   await page.click('.gnode.open .gnode-btn', { force: true });
   await page.waitForTimeout(250);
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 40; i++) {
     const nextBtn = await page.$('[data-act="g-page"][data-d="1"]');
     if (!nextBtn) break;
     await nextBtn.click(); await page.waitForTimeout(80);
@@ -231,7 +231,7 @@ function ok(msg) { console.log('✓ ' + msg); }
   await page.waitForTimeout(1400);
   const shown = await page.evaluate(() => document.querySelectorAll('.psteps li.shown').length);
   if (shown < 1) bad('el reproductor de pasos no avanza solo'); else ok('reproductor de pasos: ' + shown + ' paso(s) visibles');
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 40; i++) {
     const nextBtn = await page.$('[data-act="g-page"][data-d="1"]');
     if (!nextBtn) break;
     await nextBtn.click(); await page.waitForTimeout(60);

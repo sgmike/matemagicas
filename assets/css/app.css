@@ -227,6 +227,16 @@ html[data-theme="dark"] .badge.amber{color:var(--amber)}
 .note.key{border-color:var(--amber);background:var(--amber-l)}
 .note p:last-child{margin-bottom:0}
 .note b{font-weight:800}
+.note.real{border-color:var(--sky);background:var(--sky-l)}
+figure.fig{margin:.7rem 0;text-align:center;padding:.5rem;border:2px dashed var(--line);border-radius:var(--radius-sm);background:var(--bg2)}
+figure.fig svg{width:100%;max-width:560px;height:auto;display:block;margin:0 auto}
+figure.fig figcaption{font-size:.88rem;margin-top:.35rem;color:var(--muted)}
+details.try{margin:.6rem 0;border:2px solid var(--amber);border-radius:var(--radius-sm);background:var(--amber-l);padding:.55rem .8rem}
+details.try summary{cursor:pointer;font-weight:600;list-style:none}
+details.try summary::-webkit-details-marker{display:none}
+details.try summary::after{content:" 👉 ";font-weight:400;opacity:.7}
+details.try[open] summary::after{content:""}
+details.try .try-a{margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--amber)}
 .example{border:2px dashed var(--line);border-radius:var(--radius-sm);padding:.75rem .85rem;margin:.7rem 0;background:var(--bg2)}
 .example .ex-title{font-weight:800;color:var(--violet-d);margin-bottom:.45rem}
 html[data-theme="dark"] .example .ex-title{color:var(--violet)}

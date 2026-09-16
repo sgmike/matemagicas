@@ -66,7 +66,11 @@
       case 'list': return '<ul>' + b.items.map(i => '<li>' + es(i) + '</li>').join('') + '</ul>';
       case 'table': return '<table class="t"><thead><tr>' + b.head.map(h => '<th>' + es(h) + '</th>').join('') +
         '</tr></thead><tbody>' + b.rows.map(r => '<tr>' + r.map(c => '<td>' + es(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
-      case 'ex': return playerHtml(es(b.t), b.steps.map(es), { auto: true });
+      case 'ex': return playerHtml(es(b.t), b.steps.map(es), { open: true, icon: '✏️' });
+      case 'anim': return playerHtml(es(b.t), b.steps.map(es), { auto: true });
+      case 'real': return '<div class="note real">🌍 <b>En la vida real:</b> ' + es(b.t) + '</div>';
+      case 'fig': return '<figure class="fig">' + b.svg + '<figcaption>' + es(b.t) + '</figcaption></figure>';
+      case 'try': return '<details class="try"><summary>🤔 <b>Pruébalo tú:</b> ' + es(b.q) + '</summary><div class="try-a">✅ ' + es(b.a) + '</div></details>';
       default: return '';
     }
   }
@@ -78,8 +82,8 @@
   function playerHtml(title, steps, opts) {
     opts = opts || {};
     const id = 'pl' + (++pid);
-    return '<div class="player" id="' + id + '" data-speed="' + (opts.speed || 2600) + '"' + (opts.auto ? ' data-auto="1"' : '') + '>' +
-      '<div class="player-head"><span>🎬 ' + title + '</span>' +
+    return '<div class="player" id="' + id + '" data-speed="' + (opts.speed || 2600) + '"' + (opts.auto ? ' data-auto="1"' : '') + (opts.open ? ' data-open="1"' : '') + '>' +
+      '<div class="player-head"><span>' + (opts.icon || '🎬') + ' ' + title + '</span>' +
       '<span class="player-ctl">' +
         '<button data-pact="restart" title="Desde el principio">⏮</button>' +
         '<button data-pact="toggle" title="Reproducir / pausar">▶</button>' +
@@ -130,7 +134,8 @@
     init(root) {
       root.querySelectorAll('.player').forEach((el, i) => {
         const st = pState(el);
-        st.idx = 0; pStop(el, st);
+        /* data-open: el ejemplo se ve entero desde el principio; ⏮ lo anima */
+        st.idx = el.getAttribute('data-open') ? el.querySelectorAll('.psteps li').length : 0; pStop(el, st);
         pShow(el, st);
         if (el.getAttribute('data-auto') && i === 0) setTimeout(() => { if (document.contains(el)) pPlay(el, st); }, 500);
         else if (el.getAttribute('data-auto')) setTimeout(() => { if (document.contains(el)) pPlay(el, st); }, 500 + i * 300);
@@ -198,7 +203,7 @@
     }
     if (def.kind === 'examples') {
       const items = [];
-      MM.LESSONS[topic].sections.forEach(sec => sec.b.filter(b => b.k === 'ex').forEach(b => items.push({ title: es(b.t), steps: b.steps.map(es) })));
+      MM.LESSONS[topic].sections.forEach(sec => sec.b.filter(b => b.k === 'ex' || b.k === 'anim').forEach(b => items.push({ title: es(b.t), steps: b.steps.map(es) })));
       const rng = MM.rng(Date.now() % 1e9);
       MM.engine.chooseGens(topic, 3, rng).forEach(g => {
         const ex = MM.gen.make(g, rng.int(1, 999999));

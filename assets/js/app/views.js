@@ -121,8 +121,22 @@
           '</tr></thead><tbody>' + b.rows.map(r => '<tr>' + r.map(c => '<td>' + bi(c) + '</td>').join('') + '</tr>').join('') +
           '</tbody></table>';
       case 'ex':
-        return '<div class="example"><div class="ex-title">✏️ ' + biB(b.t, 'span') + '</div>' +
-          '<ol class="steps">' + b.steps.map(s => '<li>' + biB(s, 'div') + '</li>').join('') + '</ol></div>';
+        /* ejemplo resuelto: se ve completo; ⏮ lo reproduce paso a paso */
+        return MM.game && MM.game.playerHtml
+          ? MM.game.playerHtml(biB(b.t, 'span'), b.steps.map(s => biB(s, 'div')), { open: true, icon: '✏️' })
+          : '<div class="example"><div class="ex-title">✏️ ' + biB(b.t, 'span') + '</div>' +
+            '<ol class="steps">' + b.steps.map(s => '<li>' + biB(s, 'div') + '</li>').join('') + '</ol></div>';
+      case 'anim':
+        /* animación: empieza vacía, se ve con ▶ */
+        return MM.game && MM.game.playerHtml
+          ? MM.game.playerHtml(biB(b.t, 'span'), b.steps.map(s => biB(s, 'div')), {})
+          : '<div class="example"><div class="ex-title">🎬 ' + biB(b.t, 'span') + '</div>' +
+            '<ol class="steps">' + b.steps.map(s => '<li>' + biB(s, 'div') + '</li>').join('') + '</ol></div>';
+      case 'real': return '<div class="note real">🌍 <b class="bi"><span class="es">En la vida real:</span><span class="lv">Dzīvē:</span></b> ' + biB(b.t, 'div') + '</div>';
+      case 'fig': return '<figure class="fig">' + b.svg + '<figcaption>' + biB(b.t, 'div') + '</figcaption></figure>';
+      case 'try':
+        return '<details class="try"><summary>🤔 <b class="bi"><span class="es">Pruébalo tú:</span><span class="lv">Pamēģini:</span></b> ' + biB(b.q, 'span') + '</summary>' +
+          '<div class="try-a">✅ ' + biB(b.a, 'div') + '</div></details>';
       default: return '';
     }
   }

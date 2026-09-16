@@ -137,6 +137,12 @@ Object.keys(MM.LESSONS || {}).forEach(id => {
     (sec.b || []).forEach(bl => {
       const txt = JSON.stringify(bl);
       if (/NaN|undefined/.test(txt)) { console.error('✗ lección ' + id + ': bloque con texto sospechoso'); errors++; }
+      const KINDS = ['p', 'key', 'tip', 'warn', 'list', 'table', 'ex', 'anim', 'real', 'fig', 'try'];
+      if (!KINDS.includes(bl.k)) { console.error('✗ lección ' + id + ': bloque de tipo desconocido ' + bl.k); errors++; }
+      if (['p', 'key', 'tip', 'warn', 'real', 'ex', 'anim', 'fig'].includes(bl.k) && !(bl.t && bl.t.es && bl.t.lv)) { console.error('✗ lección ' + id + ': bloque ' + bl.k + ' sin texto bilingüe'); errors++; }
+      if ((bl.k === 'ex' || bl.k === 'anim') && (!Array.isArray(bl.steps) || bl.steps.length < 2 || bl.steps.some(s => !s.es || !s.lv))) { console.error('✗ lección ' + id + ': ejemplo/animación sin pasos bilingües'); errors++; }
+      if (bl.k === 'fig' && !/^<svg/.test(bl.svg || '')) { console.error('✗ lección ' + id + ': figura sin SVG'); errors++; }
+      if (bl.k === 'try' && !(bl.q && bl.q.es && bl.q.lv && bl.a && bl.a.es && bl.a.lv)) { console.error('✗ lección ' + id + ': "pruébalo" incompleto'); errors++; }
     });
   });
 });
